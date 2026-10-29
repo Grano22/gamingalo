@@ -1,0 +1,6 @@
+aws_region             = "us-east-1"
+state_bucket_name      = "replace-with-globally-unique-state-bucket"
+github_owner           = "replace-with-github-user-or-org"
+repository_name        = "replace-with-repository-name"
+repository_description = ""
+repository_visibility  = "private"

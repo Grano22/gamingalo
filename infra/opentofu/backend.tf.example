@@ -1,0 +1,11 @@
+# Copy this into backend.tf only after running the bootstrap configuration once.
+# Backend blocks cannot interpolate variables or resources.
+terraform {
+  backend "s3" {
+    bucket         = "REPLACE_WITH_OUTPUT_STATE_BUCKET_NAME"
+    key            = "REPLACE_WITH_REPOSITORY_NAME/terraform.tfstate"
+    region         = "REPLACE_WITH_AWS_REGION"
+    dynamodb_table = "REPLACE_WITH_OUTPUT_LOCK_TABLE_NAME"
+    encrypt        = true
+  }
+}

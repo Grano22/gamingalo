@@ -1,0 +1,37 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListStateBucket",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::${bucket_name}",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["${state_key}", "${state_key}/*"]
+        }
+      }
+    },
+    {
+      "Sid": "ManageStateObject",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::${bucket_name}/${state_key}"
+    },
+    {
+      "Sid": "ManageStateLock",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:DeleteItem"
+      ],
+      "Resource": "arn:aws:dynamodb:${region}:${account_id}:table/${lock_table_name}"
+    }
+  ]
+}
