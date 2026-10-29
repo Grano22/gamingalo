@@ -1,0 +1,3 @@
+aws_region        = "eu-central-1"
+state_bucket_name = "REPLACE_WITH_GLOBALLY_UNIQUE_PRODUCTION_STATE_BUCKET"
+lock_table_name   = "REPLACE_WITH_PRODUCTION_LOCK_TABLE"

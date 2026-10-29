@@ -1,0 +1,6 @@
+# Bootstrap state and local Terraform/OpenTofu data
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json

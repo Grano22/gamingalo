@@ -4,10 +4,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "state_bucket_name" {
-  description = "Globally unique S3 bucket name for the OpenTofu state."
-  type        = string
-}
 
 variable "github_owner" {
   description = "GitHub user or organization that will own the created repository."

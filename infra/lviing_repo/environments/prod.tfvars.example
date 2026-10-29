@@ -1,0 +1,5 @@
+aws_region             = "eu-central-1"
+github_owner           = "REPLACE_WITH_GITHUB_OWNER"
+repository_name        = "gamingalo"
+repository_description = "Gamingalo production infrastructure"
+repository_visibility  = "private"

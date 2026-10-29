@@ -41,7 +41,7 @@ resource "aws_s3_bucket_ownership_controls" "tofu_state" {
 }
 
 resource "aws_dynamodb_table" "tofu_lock" {
-  name         = "${var.state_bucket_name}-locks"
+  name         = var.lock_table_name
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
 
@@ -53,12 +53,4 @@ resource "aws_dynamodb_table" "tofu_lock" {
   lifecycle {
     prevent_destroy = true
   }
-}
-
-resource "github_repository" "project" {
-  name        = var.repository_name
-  description = var.repository_description
-  visibility  = var.repository_visibility
-
-  auto_init = true
 }

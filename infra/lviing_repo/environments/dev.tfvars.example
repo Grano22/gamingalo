@@ -1,0 +1,5 @@
+aws_region              = "eu-central-1"
+github_owner            = "grano22"
+repository_name         = "gamingalo"
+repository_description  = "Gamingalo is the set of tools for developers (GameDev) and gamers (experience)"
+repository_visibility   = "public"
