@@ -8,7 +8,7 @@
       "Resource": "arn:aws:s3:::${bucket_name}",
       "Condition": {
         "StringLike": {
-          "s3:prefix": ["${state_key}", "${state_key}/*"]
+          "s3:prefix": ["${state_key}", "${state_key}/*", "env:/*/${state_key}", "env:/*/${state_key}/*"]
         }
       }
     },
@@ -20,7 +20,10 @@
         "s3:PutObject",
         "s3:DeleteObject"
       ],
-      "Resource": "arn:aws:s3:::${bucket_name}/${state_key}"
+      "Resource": [
+        "arn:aws:s3:::${bucket_name}/${state_key}",
+        "arn:aws:s3:::${bucket_name}/env:/*/${state_key}"
+      ]
     },
     {
       "Sid": "ManageStateLock",

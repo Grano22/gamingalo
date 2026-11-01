@@ -64,4 +64,17 @@ Do not add local state, `.terraform/`, `*.tfvars`, backend cache, or secrets to 
 
 ## Distributed state access
 
-The S3 backend is encrypted and versioned; DynamoDB coordinates locks for concurrent runs. `state-access-policy.json.tftpl` describes a limited runtime policy scoped to the workload state object and lock table. Keep bootstrap permissions separate from the workload role, restrict who can assume the runtime role, and treat state as sensitive.
+The S3 backend is encrypted and versioned; DynamoDB coordinates locks for concurrent runs. `state-access-policy.json.tftpl` describes a limited runtime policy scoped to the state object and workspace state paths and lock table. Keep bootstrap permissions separate from the workload role, restrict who can assume the runtime role, and treat state as sensitive.
+
+## Security review
+
+The infrastructure configuration currently provides:
+
+- **S3 public exposure protection:** all four S3 Block Public Access settings are enabled, and bucket ownership is enforced. This blocks public ACLs and public bucket policies; it does not replace IAM access control.
+- **State confidentiality and recovery:** S3 server-side encryption (SSE-S3/AES256) and versioning are enabled. State may still contain secrets in plaintext when authorized users retrieve it, so tightly restrict `s3:GetObject` and protect downloaded state/plan files.
+- **DynamoDB protection:** the lock table uses AWS-managed encryption at rest and deletion protection. The table stores coordination locks, not Terraform state; encryption is defense in depth.
+- **Deletion safeguards:** S3 bucket and DynamoDB table have OpenTofu `prevent_destroy`; the table also has AWS deletion protection. These are safeguards against accidental removal, not access controls.
+
+The config does **not** define a bucket policy or an explicit deny for non-TLS requests. Keep S3 and DynamoDB access private by granting access only to trusted AWS IAM roles/users, ideally through AWS Organizations/account controls and a dedicated CI role with short-lived credentials. Consider adding an S3 bucket policy that denies requests where `aws:SecureTransport` is false. Do not grant public/anonymous access. The policy template is an IAM identity policy, not a bucket policy; it grants permissions but does not itself block other principals.
+
+Before relying on this for production, verify the deployed account and region, bucket public-access settings, bucket policy/access points, table encryption and deletion protection, IAM role trust policy, and CloudTrail coverage. The existing S3 backend uses legacy DynamoDB locking; for newer OpenTofu versions, consider S3 native lockfiles (`use_lockfile = true`) and eventually retire DynamoDB locking after coordinating all clients. Do not switch locking mechanisms on an active state without a planned migration.
