@@ -14,7 +14,7 @@
 | `moderation_0.1.0` | BE-013, SDK-016, WEB-011, XC-011, XC-012, XC-013 | Not started |
 | `one-time-actions_0.1.0` | BE-014, SDK-017 | Not started |
 | `analytics_0.1.0` | BE-015, BE-020, BE-024, WRAP-005, WEB-010 | Not started |
-| `player-experience_0.1.0` | SDK-010, SDK-018, SDK-019, SDK-033, SDK-034, WEB-012, WRAP-006, XC-018 | Not started |
+| `player-experience_0.1.0` | SDK-010, SDK-018, SDK-019, SDK-033, SDK-034, WEB-012, WRAP-006, XC-018 | In progress |
 | `creator-tooling_0.2.0` | CLI-007, CLI-010, WRAP-004 | Not started |
 | `mcp-public_0.1.0` | MCP-002, MCP-003, MCP-004, MCP-005 | Not started |
 

@@ -2,6 +2,14 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-11-01
+
+### Added
+
+* `sdk.accessibility`: player preferences, an ARIA mirror of game UI, live announcements, contrast and grayscale filters for the bound canvas, and optional speech.
+* `accessibility` event when a preference changes.
+* `sdk.mock.accessibility` for checking announcements, mirror items and activation in tests.
+
 ## [0.6.0] - 2026-11-01
 
 ### Added

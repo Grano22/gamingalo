@@ -2,6 +2,15 @@
 export { GamingaloError, isGamingaloError, type ErrorCode } from '@gamingalo/errors';
 export type { GamingaloConfig } from './config';
 export type { Connection, GamingaloSdk, SdkEventHandler, SdkEventMap } from './facade';
+export type {
+  Accessibility,
+  AccessibilityPreferences,
+  AnnounceOptions,
+  CanvasFilter,
+  ContrastPreference,
+  MirrorItem,
+  MirrorRole,
+} from './features/accessibility';
 export type { CacheData, GameCache } from './features/cache';
 export type { ConnectionState } from './features/connection';
 export type { FeatureName, Features } from './features/discovery';

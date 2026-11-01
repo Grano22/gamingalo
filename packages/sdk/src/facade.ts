@@ -1,4 +1,5 @@
 import { GamingaloError } from '@gamingalo/errors';
+import type { Accessibility, AccessibilityPreferences } from './features/accessibility';
 import type { GameCache } from './features/cache';
 import type { GameFiles } from './features/files';
 import type { ConnectionState } from './features/connection';
@@ -30,6 +31,8 @@ export interface SdkEventMap {
   devices: undefined;
   /** The graphics preset changed. The game applies the recommended values to its renderer. */
   graphics: GraphicsSettings;
+  /** A player's accessibility preference changed. */
+  accessibility: AccessibilityPreferences;
 }
 
 export type SdkEventHandler<E extends keyof SdkEventMap> = (payload: SdkEventMap[E]) => void;
@@ -53,6 +56,7 @@ export interface GamingaloSdk {
   /** Throws `FEATURE_UNAVAILABLE` when `features.has('files')` is `false`. */
   readonly files: GameFiles;
   readonly storage: StorageInfo;
+  readonly accessibility: Accessibility;
   /** Subscribes to an event and returns a function that unsubscribes. */
   on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void;
   /** Stops the SDK. Calling it again does nothing. Every other member then throws `SDK_NOT_INITIALIZED`. */
@@ -72,6 +76,7 @@ export interface SdkParts {
   saveBackend: SaveBackend | undefined;
   files: GameFiles | undefined;
   storage: StorageInfo;
+  accessibility: Accessibility;
   onShutdown: () => void;
 }
 
@@ -81,6 +86,7 @@ export interface SdkControls {
   suspend(): void;
   resume(): void;
   devicesChanged(): void;
+  accessibilityChanged(preferences: AccessibilityPreferences): void;
   addCleanup(cleanup: () => void): void;
   assertActive(): void;
 }
@@ -92,6 +98,7 @@ const EVENT_NAMES = freeze({
   connection: true,
   devices: true,
   graphics: true,
+  accessibility: true,
 });
 
 /**
@@ -143,6 +150,7 @@ export function buildSdk<Extra extends object = object>(
       emit('resume', undefined);
     },
     devicesChanged: () => emit('devices', undefined),
+    accessibilityChanged: (preferences) => emit('accessibility', preferences),
     addCleanup: (cleanup) => void cleanups.add(cleanup),
     assertActive,
   });
@@ -167,6 +175,7 @@ export function buildSdk<Extra extends object = object>(
   const session = guard(createSessionMemory());
   const cache = guard(parts.cache);
   const storage = guard(parts.storage);
+  const accessibility = guard(parts.accessibility);
   const { saveBackend } = parts;
   const saves =
     saveBackend && guard(createSaves({ gameId: parts.gameId, backend: saveBackend, markers: parts.store }));
@@ -212,6 +221,9 @@ export function buildSdk<Extra extends object = object>(
     },
     get storage() {
       return storage;
+    },
+    get accessibility() {
+      return accessibility;
     },
     on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void {
       if (!hasOwn(EVENT_NAMES, event) || typeof handler !== 'function') {

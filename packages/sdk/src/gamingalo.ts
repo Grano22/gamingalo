@@ -1,6 +1,7 @@
 import { GamingaloError } from '@gamingalo/errors';
 import { resolveConfig, type GamingaloConfig } from './config';
 import { buildSdk, type GamingaloSdk } from './facade';
+import { createBrowserAccessibility, watchAccessibilityPreferences } from './features/accessibility';
 import { createGameCache } from './features/cache';
 import { readBrowserConnection, watchBrowserConnection } from './features/connection';
 import { readEnvironment, watchDevices } from './features/environment';
@@ -37,6 +38,7 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
   running = true;
   const saveBackend = getBrowserSaveBackend(gameId);
   const files = getBrowserFiles(gameId);
+  const accessibility = createBrowserAccessibility(realm.canvas);
 
   return buildSdk(
     {
@@ -51,6 +53,7 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       saveBackend,
       files,
       storage: createBrowserStorageInfo(),
+      accessibility: accessibility.api,
       onShutdown: () => {
         running = false;
       },
@@ -59,6 +62,8 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       controls.addCleanup(watchBrowserConnection(controls.setConnection));
       controls.addCleanup(watchPageLifecycle(controls.suspend, controls.resume));
       controls.addCleanup(watchDevices(controls.devicesChanged));
+      controls.addCleanup(watchAccessibilityPreferences(controls.accessibilityChanged));
+      controls.addCleanup(accessibility.dispose);
       return {};
     },
   );

@@ -5,6 +5,15 @@
 import { GamingaloError } from '@gamingalo/errors';
 import { snapshotOwn } from './config';
 import { buildSdk, type GamingaloSdk } from './facade';
+import {
+  assertCanvasFilter,
+  parseMirrorItems,
+  type Accessibility,
+  type AccessibilityPreferences,
+  type CanvasFilter,
+  type MirrorItem,
+  type MirrorRole,
+} from './features/accessibility';
 import { createMemoryCache } from './features/cache';
 import { createMemoryFiles } from './features/files';
 import { CONNECTION_STATES, type ConnectionState } from './features/connection';
@@ -35,6 +44,16 @@ export interface MockControls {
   suspend(): void;
   resume(): void;
   devicesChanged(): void;
+  readonly accessibility: MockAccessibilityControls;
+}
+
+/** Lets a test check what the game exposes to assistive technology. */
+export interface MockAccessibilityControls {
+  announcements(): string[];
+  mirrorItems(): Array<{ id: string; role: MirrorRole; label: string }>;
+  /** Simulates a player activating a button. Returns `false` if there's no such item. */
+  activate(id: string): boolean;
+  setPreferences(preferences: Partial<AccessibilityPreferences>): void;
 }
 
 export type MockGamingaloSdk = GamingaloSdk & { readonly mock: MockControls };
@@ -87,6 +106,54 @@ export function isTestContext(signals: TestSignals = readSignals()): boolean {
   );
 }
 
+function createMockAccessibility(): {
+  api: Accessibility;
+  controls: (notify: (preferences: AccessibilityPreferences) => void) => MockAccessibilityControls;
+} {
+  const announced: string[] = [];
+  let items: MirrorItem[] = [];
+  let filter: CanvasFilter = 'none';
+  let preferences: AccessibilityPreferences = freeze({
+    reducedMotion: false,
+    contrast: 'no-preference',
+    forcedColors: false,
+    reducedTransparency: false,
+  });
+
+  return {
+    api: {
+      preferences: () => preferences,
+      mirror: (list) => {
+        items = parseMirrorItems(list);
+      },
+      focus: (id) => items.some((item) => item.id === id),
+      announce: (text) => void announced.push(text),
+      setCanvasFilter: (next) => {
+        assertCanvasFilter(next);
+        filter = next;
+      },
+      getCanvasFilter: () => filter,
+      speak: () => true,
+      stopSpeaking: () => {},
+    },
+    controls: (notify) =>
+      freeze({
+        announcements: () => [...announced],
+        mirrorItems: () => items.map(({ id, role, label }) => ({ id, role, label })),
+        activate: (id: string) => {
+          const item = items.find((candidate) => candidate.id === id);
+          if (!item) return false;
+          item.onActivate?.();
+          return true;
+        },
+        setPreferences: (next: Partial<AccessibilityPreferences>) => {
+          preferences = freeze({ ...preferences, ...next });
+          notify(preferences);
+        },
+      }),
+  };
+}
+
 function invalid(details: string): GamingaloError {
   return new GamingaloError('INVALID_CONFIG', `Invalid mock options. ${details}`);
 }
@@ -116,6 +183,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   const features = new SafeSet<string>();
   for (const name of featureList as string[]) features.add(name);
   const overrides = snapshotOwn(own['environment']) ?? {};
+  const accessibility = createMockAccessibility();
 
   return buildSdk<{ mock: MockControls }>(
     {
@@ -130,6 +198,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
       saveBackend: features.has('saves') ? createMemorySaveBackend() : undefined,
       files: features.has('files') ? createMemoryFiles() : undefined,
       storage: createMockStorageInfo(),
+      accessibility: accessibility.api,
       onShutdown: () => {},
     },
     (controls) => ({
@@ -150,6 +219,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
           controls.assertActive();
           controls.devicesChanged();
         },
+        accessibility: accessibility.controls(controls.accessibilityChanged),
       }),
     }),
   );

@@ -35,7 +35,17 @@ describe('public surface', () => {
 
   it('freezes the reference and every feature API, with no prototype', async () => {
     const sdk = await startSdk();
-    const apis = [sdk, sdk.features, sdk.connection, sdk.environment, sdk.settings, sdk.session, sdk.cache, sdk.storage];
+    const apis = [
+      sdk,
+      sdk.features,
+      sdk.connection,
+      sdk.environment,
+      sdk.settings,
+      sdk.session,
+      sdk.cache,
+      sdk.storage,
+      sdk.accessibility,
+    ];
 
     for (const api of apis) {
       expect(Object.isFrozen(api)).toBe(true);
