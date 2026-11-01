@@ -43,12 +43,12 @@ test('AC-1: the public surface cannot be changed', async ({ page }) => {
         return error instanceof TypeError;
       }
     });
-    sdk.settings.set('volume', 1);
+    sdk.preferences.set('volume', 1);
     return {
       blocked,
       frozen: Object.isFrozen(sdk) && Object.isFrozen(sdk.settings) && Object.isFrozen(window.Gamingalo),
       prototype: Object.getPrototypeOf(sdk) === null,
-      volume: sdk.settings.get('volume'),
+      volume: sdk.preferences.get('volume'),
     };
   });
 

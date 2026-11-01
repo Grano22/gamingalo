@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GamingaloError, Gamingalo, isGamingaloError, readEnvironment, resolveGraphics } from './index';
+import { createPreferences } from './features/preferences';
 import { createMemorySaveBackend, createSaves, decodeBlobs, encodeBlobs } from './features/saves';
 import { createMemoryStore, createSettings } from './features/settings';
 import { startSdk, stopSdks } from './test-helpers';
@@ -41,6 +42,7 @@ describe('public surface', () => {
       sdk.connection,
       sdk.environment,
       sdk.settings,
+      sdk.preferences,
       sdk.session,
       sdk.cache,
       sdk.storage,
@@ -54,7 +56,7 @@ describe('public surface', () => {
     }
     expect(Object.isFrozen(sdk.realm)).toBe(true);
     expect(Object.isFrozen(sdk.on)).toBe(true);
-    expect(Object.isFrozen(sdk.settings.set)).toBe(true);
+    expect(Object.isFrozen(sdk.preferences.set)).toBe(true);
   });
 
   it('rejects overriding, adding and deleting members', async () => {
@@ -162,12 +164,22 @@ describe('polluted Object.prototype', () => {
     const store = createMemoryStore();
     store.setItem('gamingalo:x:settings', '{}');
     pollute('graphicsPreset', 'low');
-    pollute('values', { injected: true });
 
     const settings = createSettings({ gameId: 'x', store, readTier: async () => 'high', onGraphicsChange: () => {} });
 
     expect(settings.getGraphicsPreset()).toBe('auto');
-    expect(settings.all()).toEqual({});
+  });
+
+  it('cannot supply preference definitions or values', () => {
+    const store = createMemoryStore();
+    store.setItem('k', '{}');
+    pollute('type', 'number');
+    pollute('default', 1);
+    pollute('volume', 5);
+    const preferences = createPreferences({ storageKey: 'k', store, onChange: () => {} });
+
+    expect(preferences.get('volume')).toBeUndefined();
+    expect(() => preferences.define({ volume: {} as never })).toThrow(/unknown type/);
   });
 
   it('cannot run a fake migration', async () => {
@@ -209,7 +221,7 @@ describe('built-ins patched after load', () => {
 
     sdk.session.set('secret', 'value');
     sdk.session.get('secret');
-    sdk.settings.set('volume', 1);
+    sdk.preferences.set('volume', 1);
     sdk.on('suspend', () => {});
 
     expect(mapSet).not.toHaveBeenCalled();
@@ -230,10 +242,10 @@ describe('built-ins patched after load', () => {
     });
     vi.spyOn(Object, 'freeze').mockImplementation(((value: unknown) => value) as typeof Object.freeze);
 
-    sdk.settings.set('volume', 0.5);
+    sdk.preferences.set('volume', 0.5);
 
-    expect(sdk.settings.get('volume')).toBe(0.5);
-    expect(sdk.settings.persistent).toBe(true);
+    expect(sdk.preferences.get('volume')).toBe(0.5);
+    expect(sdk.preferences.persistent).toBe(true);
     expect(JSON.stringify).not.toHaveBeenCalled();
     expect(Object.isFrozen(sdk.on('resume', () => {}))).toBe(true);
   });

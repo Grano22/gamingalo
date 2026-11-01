@@ -23,13 +23,18 @@ export {
   type EnvironmentInfo,
 } from './features/environment';
 export type { MeasureOptions, Network, NetworkInfo, NetworkMeasurement } from './features/network';
+export type {
+  JsonValue,
+  PreferenceChange,
+  PreferenceDefinition,
+  Preferences,
+} from './features/preferences';
 export type { SaveInfo, SaveRecord, SaveSchema, Saves } from './features/saves';
 export type { SessionMemory } from './features/session';
 export {
   resolveGraphics,
   type GraphicsPreset,
   type GraphicsSettings,
-  type JsonValue,
   type QualityLevel,
   type Settings,
 } from './features/settings';

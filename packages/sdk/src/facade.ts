@@ -6,6 +6,7 @@ import type { ConnectionState } from './features/connection';
 import type { Features } from './features/discovery';
 import type { Environment, EnvironmentInfo } from './features/environment';
 import type { Network } from './features/network';
+import { createPreferences, type PreferenceChange, type Preferences } from './features/preferences';
 import { createSaves, type SaveBackend, type Saves } from './features/saves';
 import { createSessionMemory, type SessionMemory } from './features/session';
 import { createSettings, type GraphicsSettings, type KeyValueStore, type Settings } from './features/settings';
@@ -34,6 +35,8 @@ export interface SdkEventMap {
   graphics: GraphicsSettings;
   /** A player's accessibility preference changed. */
   accessibility: AccessibilityPreferences;
+  /** A custom game preference changed. */
+  preferences: PreferenceChange;
 }
 
 export type SdkEventHandler<E extends keyof SdkEventMap> = (payload: SdkEventMap[E]) => void;
@@ -49,7 +52,10 @@ export interface GamingaloSdk {
   readonly features: Features;
   readonly connection: Connection;
   readonly environment: Environment;
+  /** Developer-level controls. */
   readonly settings: Settings;
+  /** Custom game settings, defined by the game and chosen by the player. */
+  readonly preferences: Preferences;
   readonly session: SessionMemory;
   readonly cache: GameCache;
   /** Throws `FEATURE_UNAVAILABLE` when `features.has('saves')` is `false`. */
@@ -102,6 +108,7 @@ const EVENT_NAMES = freeze({
   devices: true,
   graphics: true,
   accessibility: true,
+  preferences: true,
 });
 
 /**
@@ -175,6 +182,13 @@ export function buildSdk<Extra extends object = object>(
       onGraphicsChange: (graphics) => emit('graphics', graphics),
     }),
   );
+  const preferences = guard(
+    createPreferences({
+      storageKey: `gamingalo:${parts.gameId}:preferences`,
+      store: parts.store,
+      onChange: (change) => emit('preferences', change),
+    }),
+  );
   const session = guard(createSessionMemory());
   const cache = guard(parts.cache);
   const storage = guard(parts.storage);
@@ -204,6 +218,9 @@ export function buildSdk<Extra extends object = object>(
     },
     get settings() {
       return settings;
+    },
+    get preferences() {
+      return preferences;
     },
     get session() {
       return session;

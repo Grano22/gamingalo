@@ -2,6 +2,16 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.9.0] - 2026-11-01
+
+### Added
+
+* `sdk.preferences`: custom game settings, with optional definitions for types, defaults and limits, and a `preferences` event.
+
+### Changed
+
+* **Breaking:** `sdk.settings` now holds developer-level graphics controls only. `get`, `set`, `remove` and `all` moved to `sdk.preferences`, where `remove` is now `reset`. Values stored by earlier versions aren't migrated, since the SDK hasn't been released.
+
 ## [0.8.1] - 2026-11-01
 
 ### Fixed

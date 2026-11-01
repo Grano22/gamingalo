@@ -91,11 +91,11 @@ test('environment: reads complete information with no permission prompts', async
   expect(dialogs).toBe(0);
 });
 
-test('settings: survive a reload and are separate for each game', async ({ page }) => {
+test('preferences and settings: survive a reload and are separate for each game', async ({ page }) => {
   await open(page);
   await page.evaluate(async () => {
     const sdk = await window.Gamingalo.init({ gameId: 'game-a' });
-    sdk.settings.set('volume', 0.5);
+    sdk.preferences.set('volume', 0.5);
     await sdk.settings.setGraphicsPreset('low');
   });
 
@@ -105,13 +105,13 @@ test('settings: survive a reload and are separate for each game', async ({ page 
   const result = await page.evaluate(async () => {
     const gameA = await window.Gamingalo.init({ gameId: 'game-a' });
     const values = {
-      volume: gameA.settings.get('volume'),
-      persistent: gameA.settings.persistent,
+      volume: gameA.preferences.get('volume'),
+      persistent: gameA.preferences.persistent,
       quality: (await gameA.settings.getGraphics()).quality,
     };
     await gameA.shutdown();
     const gameB = await window.Gamingalo.init({ gameId: 'game-b' });
-    return { ...values, otherGame: gameB.settings.get('volume') ?? null };
+    return { ...values, otherGame: gameB.preferences.get('volume') ?? null };
   });
 
   expect(result).toEqual({ volume: 0.5, persistent: true, quality: 'low', otherGame: null });

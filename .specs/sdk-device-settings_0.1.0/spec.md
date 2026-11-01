@@ -34,9 +34,6 @@ env.hardware.cpuCores;   // number | 'unknown'
 env.graphics.webgpu;     // boolean
 env.tier;                // 'low' | 'medium' | 'high' | 'unknown'
 
-sdk.settings.set('musicVolume', 0.5);
-sdk.settings.get('musicVolume', 1);   // 0.5
-
 await sdk.settings.setGraphicsPreset('auto');
 const graphics = await sdk.settings.getGraphics(); // recommended values
 sdk.on('graphics', (values) => applyToRenderer(values));
