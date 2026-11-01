@@ -21,7 +21,7 @@ export type GamingaloMode = 'production' | 'mock';
 export interface MockOptions {
   /** Starting connection state. Defaults to `online`. */
   connection?: ConnectionState;
-  /** Features reported as available. Defaults to none. */
+  /** Features reported as available. Defaults to the features that work in mock mode (`saves`). */
   features?: FeatureName[];
   /** Replaces top-level sections of the fixed mock environment. */
   environment?: Partial<EnvironmentInfo>;
@@ -61,7 +61,7 @@ export function resolveConfig(input: unknown): ResolvedConfig {
     mode,
     mock: {
       connection: mock?.connection ?? 'online',
-      features: [...new Set(mock?.features ?? [])].sort(),
+      features: [...new Set<FeatureName>(mock?.features ?? ['saves'])].sort(),
       environment: (mock?.environment ?? {}) as Partial<EnvironmentInfo>,
     },
   };

@@ -18,7 +18,9 @@ export {
   type Environment,
   type EnvironmentInfo,
 } from './features/environment';
+export type { SaveInfo, SaveRecord, SaveSchema, Saves } from './features/saves';
 export type { SessionMemory } from './features/session';
+export type { StorageEstimate, StorageInfo } from './features/storage';
 export {
   resolveGraphics,
   type GraphicsPreset,

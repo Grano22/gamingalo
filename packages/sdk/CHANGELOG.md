@@ -2,6 +2,19 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-11-01
+
+### Added
+
+* `sdk.saves`: local save slots using IndexedDB, including binary data such as Blobs.
+* Save schema versions with ordered migrations. A failed migration leaves the save unchanged.
+* `sdk.saves.wasEvicted()` to detect saves removed by the browser, where detection is possible.
+* `sdk.storage`: storage usage and persistence requests.
+
+### Changed
+
+* `features.has('saves')` now reports real availability. In mock mode, saves are available unless `mock.features` is set without them.
+
 ## [0.3.0] - 2026-11-01
 
 ### Added

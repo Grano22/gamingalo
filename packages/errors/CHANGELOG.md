@@ -2,6 +2,12 @@
 
 All notable changes to `@gamingalo/errors` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-11-01
+
+### Added
+
+* `SAVE_VERSION_TOO_NEW` and `SAVE_MIGRATION_FAILED` error codes.
+
 ## [0.2.0] - 2026-11-01
 
 ### Added

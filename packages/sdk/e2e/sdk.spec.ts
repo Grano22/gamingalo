@@ -154,6 +154,99 @@ test('cache: stores real files, separate for each game, with no network traffic'
   expect(requests).toEqual([]);
 });
 
+test('saves: survive a reload with binary data, migrate, and stay separate per game', async ({ page }) => {
+  await open(page);
+  await page.evaluate(async () => {
+    const sdk = await window.Gamingalo.init({ gameId: 'saves-a' });
+    await sdk.saves.write('slot-1', { level: 3, logo: new Blob(['pixels'], { type: 'image/png' }) });
+  });
+
+  await page.reload();
+  await page.waitForFunction(() => window.ready);
+
+  const result = await page.evaluate(async () => {
+    const gameA = await window.Gamingalo.init({ gameId: 'saves-a' });
+    gameA.saves.configure({
+      version: 2,
+      migrations: { 1: (old: { level: number; logo: Blob }) => ({ ...old, money: 10 }) },
+    });
+    const save = await gameA.saves.read<{ level: number; money: number; logo: Blob }>('slot-1');
+    const values = {
+      available: gameA.features.has('saves'),
+      version: save?.version,
+      level: save?.data.level,
+      money: save?.data.money,
+      logo: await save?.data.logo.text(),
+      slots: (await gameA.saves.list()).map((info) => [info.slot, info.version]),
+      evicted: await gameA.saves.wasEvicted(),
+    };
+
+    let cloneError = '';
+    try {
+      await gameA.saves.write('bad', { handler: () => {} });
+    } catch (error) {
+      cloneError = (error as { code: string }).code;
+    }
+    await gameA.shutdown();
+
+    const gameB = await window.Gamingalo.init({ gameId: 'saves-b' });
+    return { ...values, cloneError, otherGame: (await gameB.saves.read('slot-1')) ?? null };
+  });
+
+  expect(result).toEqual({
+    available: true,
+    version: 2,
+    level: 3,
+    money: 10,
+    logo: 'pixels',
+    slots: [['slot-1', 2]],
+    evicted: false,
+    cloneError: 'INVALID_ARGUMENT',
+    otherGame: null,
+  });
+});
+
+test('saves: report eviction when the browser removes the database', async ({ page }) => {
+  await open(page);
+  const evicted = await page.evaluate(async () => {
+    const sdk = await window.Gamingalo.init({ gameId: 'saves-evicted' });
+    await sdk.saves.write('slot-1', 1);
+    await sdk.shutdown();
+
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase('gamingalo:saves-evicted');
+      request.onsuccess = resolve;
+      request.onerror = reject;
+    });
+
+    const restarted = await window.Gamingalo.init({ gameId: 'saves-evicted' });
+    return [await restarted.saves.wasEvicted(), await restarted.saves.wasEvicted()];
+  });
+
+  expect(evicted).toEqual([true, false]);
+});
+
+test('storage: reports usage and handles persistence requests', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const sdk = await window.Gamingalo.init({ gameId: 'storage-game' });
+    // Firefox shows the player a prompt, so its request stays pending in a test.
+    const granted = await Promise.race([
+      sdk.storage.requestPersistence(),
+      new Promise<string>((resolve) => setTimeout(() => resolve('pending'), 500)),
+    ]);
+    return {
+      estimate: await sdk.storage.estimate(),
+      granted,
+      persistent: await sdk.storage.isPersistent(),
+    };
+  });
+
+  expect([true, false, 'pending']).toContain(result.granted);
+  expect(typeof result.persistent).toBe('boolean');
+  if (result.estimate !== 'unknown') expect(result.estimate.quotaBytes).toBeGreaterThan(0);
+});
+
 test('AC-7: mock mode makes no network requests', async ({ page }) => {
   await open(page);
   const requests: string[] = [];

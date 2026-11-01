@@ -6,7 +6,14 @@ import { createGameCache, createMemoryCache, type GameCache } from './features/c
 import type { Features } from './features/discovery';
 import { MOCK_ENVIRONMENT, readEnvironment, watchDevices, type Environment } from './features/environment';
 import { isPageHidden, watchPageLifecycle } from './features/lifecycle';
+import {
+  createMemorySaveBackend,
+  createSaves,
+  getBrowserSaveBackend,
+  type Saves,
+} from './features/saves';
 import { createSessionMemory, type SessionMemory } from './features/session';
+import { createBrowserStorageInfo, createMockStorageInfo, type StorageInfo } from './features/storage';
 import {
   createMemoryStore,
   createSettings,
@@ -48,6 +55,9 @@ export interface GamingaloSdk {
   readonly settings: Settings;
   readonly session: SessionMemory;
   readonly cache: GameCache;
+  /** Throws `FEATURE_UNAVAILABLE` when `features.has('saves')` is `false`. */
+  readonly saves: Saves;
+  readonly storage: StorageInfo;
   /** `undefined` unless `mode` is `mock`. */
   readonly mock: MockControls | undefined;
   /** Subscribes to an event and returns a function that unsubscribes. */
@@ -71,8 +81,9 @@ class Facade implements GamingaloSdk {
 
   readonly #api: Pick<
     GamingaloSdk,
-    'features' | 'connection' | 'environment' | 'settings' | 'session' | 'cache' | 'mock'
+    'features' | 'connection' | 'environment' | 'settings' | 'session' | 'cache' | 'storage' | 'mock'
   >;
+  readonly #saves: Saves | undefined;
 
   constructor(config: ResolvedConfig, onShutdown: () => void) {
     this.#config = config;
@@ -99,9 +110,23 @@ class Facade implements GamingaloSdk {
     const read = async () =>
       mocked ? structuredClone({ ...MOCK_ENVIRONMENT, ...config.mock.environment }) : readEnvironment();
 
+    // Saves never fall back to memory in production, because the player would lose progress.
+    const saveBackend = mocked
+      ? config.mock.features.includes('saves')
+        ? createMemorySaveBackend()
+        : undefined
+      : getBrowserSaveBackend(config.gameId);
+    if (saveBackend) this.#stopWatching.push(() => saveBackend.close());
+    const store = mocked ? createMemoryStore() : getBrowserStore();
+    this.#saves =
+      saveBackend && this.#guard(createSaves({ gameId: config.gameId, backend: saveBackend, markers: store }));
+
     this.#api = {
       features: this.#guard<Features>({
-        has: (name) => (config.mock.features as string[]).includes(name),
+        has: (name) => {
+          if (name === 'saves') return !!saveBackend;
+          return mocked && (config.mock.features as string[]).includes(name);
+        },
       }),
       connection: this.#guard<Connection>({
         get state() {
@@ -112,13 +137,14 @@ class Facade implements GamingaloSdk {
       settings: this.#guard<Settings>(
         createSettings({
           gameId: config.gameId,
-          store: mocked ? createMemoryStore() : getBrowserStore(),
+          store,
           readTier: async () => (await read()).tier,
           onGraphicsChange: (graphics) => this.#emit('graphics', graphics),
         }),
       ),
       session: this.#guard(createSessionMemory()),
       cache: this.#guard(mocked ? createMemoryCache() : createGameCache(config.gameId)),
+      storage: this.#guard(mocked ? createMockStorageInfo() : createBrowserStorageInfo()),
       mock: mocked
         ? this.#guard<MockControls>({
             setConnection,
@@ -168,6 +194,19 @@ class Facade implements GamingaloSdk {
   get cache(): GameCache {
     this.#assertActive();
     return this.#api.cache;
+  }
+
+  get saves(): Saves {
+    this.#assertActive();
+    if (!this.#saves) {
+      throw new GamingaloError('FEATURE_UNAVAILABLE', 'Saves need IndexedDB, which this browser or mock does not provide.');
+    }
+    return this.#saves;
+  }
+
+  get storage(): StorageInfo {
+    this.#assertActive();
+    return this.#api.storage;
   }
 
   get mock(): MockControls | undefined {

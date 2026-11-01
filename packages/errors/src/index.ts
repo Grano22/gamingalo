@@ -8,6 +8,8 @@ export const ERROR_DEFINITIONS = {
   NETWORK_OFFLINE: { retryable: true },
   STORAGE_UNAVAILABLE: { retryable: true },
   STORAGE_QUOTA_EXCEEDED: { retryable: false },
+  SAVE_VERSION_TOO_NEW: { retryable: false },
+  SAVE_MIGRATION_FAILED: { retryable: false },
   INTERNAL: { retryable: false },
 } as const satisfies Record<string, { retryable: boolean }>;
 

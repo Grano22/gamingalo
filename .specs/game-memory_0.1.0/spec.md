@@ -60,19 +60,21 @@ Rules:
 
 ## Acceptance criteria
 
-* [ ] AC-1: Session values are gone after a shutdown and a new `init`.
-* [ ] AC-2: Cached files can be stored, read and deleted in Chromium, Firefox and WebKit, and are separate for each game.
-* [ ] AC-3: Saves, including a Blob, survive a page reload in Chromium, Firefox and WebKit, and are separate for each game.
-* [ ] AC-4: Migrations follow the rules above, and a failure leaves the save unchanged.
-* [ ] AC-5: Quota and other storage errors map to the documented codes.
-* [ ] AC-6: `wasEvicted` reports `true` once when saves disappear unexpectedly, and not after normal deletes.
-* [ ] AC-7: `storage.estimate` and `requestPersistence` work where supported and never throw where they aren't.
-* [ ] AC-8: The core bundle stays within budget.
+* [x] AC-1: Session values are gone after a shutdown and a new `init`.
+* [x] AC-2: Cached files can be stored, read and deleted in Chromium, Firefox and WebKit, and are separate for each game.
+* [x] AC-3: Saves, including a Blob, survive a page reload in Chromium, Firefox and WebKit, and are separate for each game.
+* [x] AC-4: Migrations follow the rules above, and a failure leaves the save unchanged.
+* [x] AC-5: Quota and other storage errors map to the documented codes.
+* [x] AC-6: `wasEvicted` reports `true` once when saves disappear unexpectedly, and not after normal deletes.
+* [x] AC-7: `storage.estimate` and `requestPersistence` work where supported and never throw where they aren't.
+* [x] AC-8: The core bundle stays within budget.
 
 ## Design
 
 * Plain feature functions in `src/features`, exposed by the facade (D-19).
 * Saves use IndexedDB and store whole records, so each write is atomic.
+* Blobs and Files inside arrays and plain objects are stored as bytes and restored on read, because WebKit can refuse raw Blobs in IndexedDB. A Blob inside a `Map` or `Set` isn't converted, so it can fail in WebKit.
+* `requestPersistence` can stay pending while Firefox asks the player, so games shouldn't wait on it during startup.
 * Eviction detection uses a marker in `localStorage`. Safari can clear both stores together, in which case eviction can't be detected. Calling `requestPersistence` and using online sync are the real protections.
 
 ## Security and privacy
@@ -87,8 +89,8 @@ Rules:
 ## Tasks
 
 * [x] Session memory and cache
-* [ ] Saves, migrations and eviction detection
-* [ ] Storage quota and persistence
+* [x] Saves, migrations and eviction detection
+* [x] Storage quota and persistence
 * [ ] OPFS for large files
 * [ ] Online sync through a foreign API
 * [ ] Backend and platform parts
