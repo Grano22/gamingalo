@@ -2,6 +2,15 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.11.0] - 2026-11-01
+
+### Added
+
+* `sdk.localization`: messages with parameters, plurals and fallback, a saved locale choice, text direction, and number and date formatting.
+* `localization.detect()` reports language, region, time zone and keyboard layout with no prompts. Keyboard layout is `unknown` outside Chromium.
+* `localization.requestGeolocation()` returns the player's position when they allow it. It runs only when a game calls it.
+* `locale` event, and a `localization` mock option.
+
 ## [0.10.0] - 2026-11-01
 
 ### Added

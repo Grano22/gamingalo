@@ -6,6 +6,7 @@ import type { GameFiles } from './features/files';
 import type { ConnectionState } from './features/connection';
 import type { Features } from './features/discovery';
 import type { Environment, EnvironmentInfo } from './features/environment';
+import { createLocalization, type Localization, type LocaleSource } from './features/localization';
 import type { Network } from './features/network';
 import type { GamingaloPlugin, PluginContext } from './features/plugins';
 import { createPreferences, type PreferenceChange, type Preferences } from './features/preferences';
@@ -40,6 +41,8 @@ export interface SdkEventMap {
   accessibility: AccessibilityPreferences;
   /** A custom game preference changed. */
   preferences: PreferenceChange;
+  /** The locale changed. */
+  locale: string;
 }
 
 export type SdkEventHandler<E extends keyof SdkEventMap> = (payload: SdkEventMap[E]) => void;
@@ -68,6 +71,7 @@ export interface GamingaloSdk {
   readonly storage: StorageInfo;
   readonly accessibility: Accessibility;
   readonly network: Network;
+  readonly localization: Localization;
   /** Returns the API of a plugin listed in `init`. Throws `FEATURE_UNAVAILABLE` for any other plugin. */
   use<Api extends object>(plugin: GamingaloPlugin<Api>): Api;
   /** Subscribes to an event and returns a function that unsubscribes. */
@@ -91,6 +95,7 @@ export interface SdkParts {
   storage: StorageInfo;
   accessibility: Accessibility;
   network: Network;
+  localeSource: LocaleSource;
   filters: CanvasFilterLayers;
   plugins: readonly ResolvedPlugin[];
   onShutdown: () => void;
@@ -116,6 +121,7 @@ const EVENT_NAMES = freeze({
   graphics: true,
   accessibility: true,
   preferences: true,
+  locale: true,
 });
 
 /**
@@ -222,6 +228,14 @@ export function buildSdk<Extra extends object = object>(
   const storage = guard(parts.storage);
   const accessibility = guard(parts.accessibility);
   const network = guard(parts.network);
+  const localization = guard(
+    createLocalization({
+      gameId: parts.gameId,
+      store: parts.store,
+      source: parts.localeSource,
+      onLocaleChange: (locale) => emit('locale', locale),
+    }),
+  );
   const { saveBackend } = parts;
   const saves =
     saveBackend && guard(createSaves({ gameId: parts.gameId, backend: saveBackend, markers: parts.store }));
@@ -276,6 +290,9 @@ export function buildSdk<Extra extends object = object>(
     },
     get network() {
       return network;
+    },
+    get localization() {
+      return localization;
     },
     on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void {
       if (!hasOwn(EVENT_NAMES, event) || typeof handler !== 'function') {

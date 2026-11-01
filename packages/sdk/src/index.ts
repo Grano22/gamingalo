@@ -22,6 +22,16 @@ export {
   type Environment,
   type EnvironmentInfo,
 } from './features/environment';
+export type {
+  GeolocationOptions,
+  GeolocationResult,
+  KeyboardInfo,
+  KeyboardLayoutName,
+  LocaleDetection,
+  Localization,
+  MessageParams,
+  TextDirection,
+} from './features/localization';
 export type { MeasureOptions, Network, NetworkInfo, NetworkMeasurement } from './features/network';
 export type {
   JsonValue,

@@ -20,6 +20,7 @@ import { createMemoryFiles } from './features/files';
 import { CONNECTION_STATES, type ConnectionState } from './features/connection';
 import { FEATURE_NAMES, type FeatureName } from './features/discovery';
 import type { EnvironmentInfo } from './features/environment';
+import type { GeolocationResult, KeyboardInfo } from './features/localization';
 import { createSessionId, type Network, type NetworkMeasurement } from './features/network';
 import { createMemorySaveBackend } from './features/saves';
 import type { GamingaloPlugin } from './features/plugins';
@@ -41,6 +42,8 @@ export interface MockOptions {
   environment?: Partial<EnvironmentInfo>;
   /** Values returned by `network.measure()`. */
   network?: Partial<NetworkMeasurement>;
+  /** Values reported by `sdk.localization`. */
+  localization?: { languages?: string[]; timeZone?: string; keyboard?: KeyboardInfo; geolocation?: GeolocationResult };
   /** Plugins to test. */
   plugins?: ReadonlyArray<GamingaloPlugin<object>>;
 }
@@ -179,7 +182,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   const own = snapshotOwn(options);
   if (!own) throw invalid('Expected an object.');
   for (const name of Object.keys(own)) {
-    if (!['gameId', 'connection', 'features', 'environment', 'network', 'plugins'].includes(name)) throw invalid(`Unknown option ${name}.`);
+    if (!['gameId', 'connection', 'features', 'environment', 'network', 'plugins', 'localization'].includes(name)) throw invalid(`Unknown option ${name}.`);
   }
 
   const connection = own['connection'] ?? 'online';
@@ -197,6 +200,8 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   const gameId = typeof own['gameId'] === 'string' ? own['gameId'] : 'mock-game';
   const { plugins } = resolveConfig({ gameId, plugins: own['plugins'] });
   const filters = createCanvasFilterLayers(undefined);
+  const locale = snapshotOwn(own['localization']) ?? {};
+  const mockLanguages = (locale['languages'] as string[] | undefined) ?? ['en-US'];
   let currentConnection = connection as ConnectionState;
   let measurement: NetworkMeasurement = freeze({
     pingMs: 20,
@@ -237,6 +242,13 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
       storage: createMockStorageInfo(),
       accessibility: accessibility.api,
       network,
+      localeSource: {
+        languages: () => mockLanguages,
+        timeZone: () => (locale['timeZone'] as string | undefined) ?? 'UTC',
+        keyboard: async () =>
+          (locale['keyboard'] as KeyboardInfo | undefined) ?? freeze({ layout: 'qwerty', keys: freeze({}) }),
+        geolocation: async () => (locale['geolocation'] as GeolocationResult | undefined) ?? freeze({ status: 'denied' }),
+      },
       filters,
       plugins,
       onShutdown: () => {},

@@ -8,6 +8,7 @@ import { readBrowserConnection, watchBrowserConnection } from './features/connec
 import { readEnvironment, watchDevices } from './features/environment';
 import { getBrowserFiles } from './features/files';
 import { isPageHidden, watchPageLifecycle } from './features/lifecycle';
+import { createBrowserLocaleSource } from './features/localization';
 import { createNetwork, createSessionId } from './features/network';
 import { getBrowserSaveBackend } from './features/saves';
 import { getBrowserStore } from './features/settings';
@@ -61,6 +62,7 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       storage: createBrowserStorageInfo(),
       accessibility: accessibility.api,
       network: createNetwork(capturedFetch, createSessionId()),
+      localeSource: createBrowserLocaleSource(),
       filters,
       plugins,
       onShutdown: () => {
