@@ -2,6 +2,13 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-11-01
+
+### Added
+
+* `sdk.session`: memory that lasts until shutdown or page close.
+* `sdk.cache`: per-game file cache using the Cache API, with a memory fallback.
+
 ## [0.2.0] - 2026-11-01
 
 ### Added

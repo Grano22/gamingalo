@@ -6,6 +6,8 @@ export const ERROR_DEFINITIONS = {
   INVALID_ARGUMENT: { retryable: false },
   FEATURE_UNAVAILABLE: { retryable: false },
   NETWORK_OFFLINE: { retryable: true },
+  STORAGE_UNAVAILABLE: { retryable: true },
+  STORAGE_QUOTA_EXCEEDED: { retryable: false },
   INTERNAL: { retryable: false },
 } as const satisfies Record<string, { retryable: boolean }>;
 

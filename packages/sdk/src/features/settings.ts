@@ -40,7 +40,7 @@ export type GraphicsSettings = (typeof QUALITY_PRESETS)[QualityLevel] & {
 };
 
 export interface Settings {
-  /** `false` when the last read or write could not reach storage, so values last only for this session. */
+  /** `false` when storage is unavailable or the last write failed, so recent values may last only for this session. */
   readonly persistent: boolean;
   get<T extends JsonValue>(key: string, fallback: T): T;
   get(key: string): JsonValue | undefined;

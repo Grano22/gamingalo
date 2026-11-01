@@ -115,6 +115,45 @@ test('settings: survive a reload and are separate for each game', async ({ page 
   expect(result).toEqual({ volume: 0.5, persistent: true, quality: 'low', otherGame: null });
 });
 
+test('cache: stores real files, separate for each game, with no network traffic', async ({ page }) => {
+  await open(page);
+  const requests: string[] = [];
+  page.on('request', (request) => {
+    // WebKit reads Blobs through local blob: URLs, which aren't network traffic.
+    if (request.url().startsWith('http')) requests.push(request.url());
+  });
+
+  const result = await page.evaluate(async () => {
+    const gameA = await window.Gamingalo.init({ gameId: 'cache-a' });
+    await gameA.cache.put('logo file.png', new Blob(['pixels'], { type: 'image/png' }));
+    await gameA.cache.put('note', 'hello');
+    const blob = await gameA.cache.get('logo file.png');
+    const values = {
+      persistent: gameA.cache.persistent,
+      text: await blob?.text(),
+      type: blob?.type,
+      note: await (await gameA.cache.get('note'))?.text(),
+      deleted: await gameA.cache.delete('note'),
+      afterDelete: (await gameA.cache.get('note')) ?? null,
+    };
+    await gameA.shutdown();
+
+    const gameB = await window.Gamingalo.init({ gameId: 'cache-b' });
+    return { ...values, otherGame: (await gameB.cache.get('logo file.png')) ?? null };
+  });
+
+  expect(result).toEqual({
+    persistent: true,
+    text: 'pixels',
+    type: 'image/png',
+    note: 'hello',
+    deleted: true,
+    afterDelete: null,
+    otherGame: null,
+  });
+  expect(requests).toEqual([]);
+});
+
 test('AC-7: mock mode makes no network requests', async ({ page }) => {
   await open(page);
   const requests: string[] = [];

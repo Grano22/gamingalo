@@ -2,9 +2,11 @@ import { GamingaloError } from '@gamingalo/errors';
 import type { GamingaloConfig, GamingaloMode, ResolvedConfig } from './config';
 import { resolveConfig } from './config';
 import { readBrowserConnection, watchBrowserConnection, type ConnectionState } from './features/connection';
+import { createGameCache, createMemoryCache, type GameCache } from './features/cache';
 import type { Features } from './features/discovery';
 import { MOCK_ENVIRONMENT, readEnvironment, watchDevices, type Environment } from './features/environment';
 import { isPageHidden, watchPageLifecycle } from './features/lifecycle';
+import { createSessionMemory, type SessionMemory } from './features/session';
 import {
   createMemoryStore,
   createSettings,
@@ -44,6 +46,8 @@ export interface GamingaloSdk {
   readonly connection: Connection;
   readonly environment: Environment;
   readonly settings: Settings;
+  readonly session: SessionMemory;
+  readonly cache: GameCache;
   /** `undefined` unless `mode` is `mock`. */
   readonly mock: MockControls | undefined;
   /** Subscribes to an event and returns a function that unsubscribes. */
@@ -65,7 +69,10 @@ class Facade implements GamingaloSdk {
   #connection: ConnectionState;
   #suspended: boolean;
 
-  readonly #api: Pick<GamingaloSdk, 'features' | 'connection' | 'environment' | 'settings' | 'mock'>;
+  readonly #api: Pick<
+    GamingaloSdk,
+    'features' | 'connection' | 'environment' | 'settings' | 'session' | 'cache' | 'mock'
+  >;
 
   constructor(config: ResolvedConfig, onShutdown: () => void) {
     this.#config = config;
@@ -110,6 +117,8 @@ class Facade implements GamingaloSdk {
           onGraphicsChange: (graphics) => this.#emit('graphics', graphics),
         }),
       ),
+      session: this.#guard(createSessionMemory()),
+      cache: this.#guard(mocked ? createMemoryCache() : createGameCache(config.gameId)),
       mock: mocked
         ? this.#guard<MockControls>({
             setConnection,
@@ -149,6 +158,16 @@ class Facade implements GamingaloSdk {
   get settings(): Settings {
     this.#assertActive();
     return this.#api.settings;
+  }
+
+  get session(): SessionMemory {
+    this.#assertActive();
+    return this.#api.session;
+  }
+
+  get cache(): GameCache {
+    this.#assertActive();
+    return this.#api.cache;
   }
 
   get mock(): MockControls | undefined {

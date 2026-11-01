@@ -8,6 +8,7 @@ export {
   type SdkEventHandler,
   type SdkEventMap,
 } from './facade';
+export type { CacheData, GameCache } from './features/cache';
 export type { ConnectionState } from './features/connection';
 export type { FeatureName, Features } from './features/discovery';
 export {
@@ -17,6 +18,7 @@ export {
   type Environment,
   type EnvironmentInfo,
 } from './features/environment';
+export type { SessionMemory } from './features/session';
 export {
   resolveGraphics,
   type GraphicsPreset,
