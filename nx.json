@@ -18,6 +18,9 @@
       "inputs": ["default", "^production"],
       "cache": true
     },
+    "e2e": {
+      "dependsOn": ["build"]
+    },
     "typecheck": {
       "dependsOn": ["^build"],
       "inputs": ["default", "^production"],

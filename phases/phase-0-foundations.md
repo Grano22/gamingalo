@@ -6,7 +6,7 @@
 
 | Spec | Covers | Status |
 |---|---|---|
-| `repo-foundation_0.1.0` | XC-015, XC-020 | Not started |
+| `repo-foundation_0.1.0` | XC-015, XC-020 | In progress |
 | `security-model_0.1.0` | XC-001 | Not started |
 | `platform-contracts_0.1.0` | XC-003, XC-004, XC-014, XC-016 | Not started |
 

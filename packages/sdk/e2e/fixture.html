@@ -1,0 +1,10 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>SDK fixture</title>
+<script type="module">
+  // Deliberately plain JavaScript with no bundler (AC-1).
+  import { Gamingalo, isGamingaloError } from '/dist/index.js';
+  window.Gamingalo = Gamingalo;
+  window.isGamingaloError = isGamingaloError;
+  window.ready = true;
+</script>

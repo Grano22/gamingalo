@@ -26,8 +26,8 @@ The repo has no workspace, so no package can be built or tested.
 
 ## Acceptance criteria
 
-* [ ] AC-1: `npm ci && npx nx run-many -t lint typecheck test build` passes from a clean checkout.
-* [ ] AC-2: A second run with no changes reuses the Nx cache.
+* [x] AC-1: `npm ci && npx nx run-many -t lint typecheck test build` passes from a clean checkout.
+* [x] AC-2: A second run with no changes reuses the Nx cache.
 * [ ] AC-3: CI runs the same targets on pull requests and on `main`.
 * [ ] AC-4: `infra/living_repo` is committed, and its README no longer refers to `../opentofu`. CI validates the OpenTofu roots.
 
@@ -37,8 +37,8 @@ Run AC-1 and AC-2 locally. AC-3 is verified on the first pushed pull request.
 
 ## Tasks
 
-* [ ] Create the workspace and shared configuration
-* [ ] Add CI
+* [x] Create the workspace and shared configuration
+* [x] Add CI, unverified until first pushed
 * [ ] Complete infrastructure housekeeping
 
 ## Open questions

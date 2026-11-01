@@ -1,7 +1,7 @@
 # SDK initiation
 
 * **Version:** 0.0.1
-* **Status:** Draft
+* **Status:** In progress
 * **Phase:** P1
 * **Requirements:** SDK-001, SDK-009, XC-005
 * **Depends on:** `repo-foundation_0.1.0`, `platform-contracts_0.1.0`
@@ -29,42 +29,59 @@ Every SDK feature needs the same entry point, lifecycle and error handling. Buil
 
 ## Behavior
 
-Draft of the public API, to be finalized during review:
+Public API:
 
 ```ts
-const sdk = await Gamingalo.init({ gameId: 'my-game', mode: 'production' });
+const sdk = await Gamingalo.init({ gameId: 'my-game' });
 
+Gamingalo.instance();                // the running instance, or throws
 sdk.features.has('saves');           // boolean
 sdk.connection.state;                // 'online' | 'offline' | 'degraded'
-sdk.on('suspend', handler);          // tab hidden or page being frozen
+const off = sdk.on('suspend', handler); // tab hidden or page being frozen
 sdk.on('resume', handler);
+sdk.on('connection', (state) => {});
 
 await sdk.shutdown();
+
+// Mock mode: no backend, and state is controlled by the test.
+const mocked = await Gamingalo.init({
+  gameId: 'my-game',
+  mode: 'mock',
+  mock: { connection: 'offline', features: ['saves'] },
+});
+mocked.mock?.setConnection('online');
+mocked.mock?.suspend();
+mocked.mock?.resume();
 ```
 
 Rules:
 
 * `init` is safe to call repeatedly and returns the same instance for the same configuration. A different configuration rejects with `SDK_ALREADY_INITIALIZED`.
+* An invalid configuration rejects with `INVALID_CONFIG` and leaves nothing running.
 * `init` never fails only because the player is offline. The SDK starts in `offline` state.
-* Calling any method before `init` or after `shutdown` throws `SDK_NOT_INITIALIZED`.
-* Asynchronous failures reject with `GamingaloError`, which has a stable `code`, a `retryable` flag and a developer-facing `message`.
+* `Gamingalo.instance()` throws `SDK_NOT_INITIALIZED` when nothing is running. After `shutdown`, every member of the instance also throws it, except `shutdown`, which is safe to repeat.
+* Failures use `GamingaloError`, which has a stable `code`, a `retryable` flag and a developer-facing `message`.
+* A game's event handler that throws is logged and doesn't affect other handlers.
+* A game started in a hidden tab receives `resume` when first shown, with no `suspend` before it.
+* `degraded` is reserved. Only later transports can detect it, so production mode currently reports `online` or `offline`. Mock mode can set any state.
+* `features.has` reports nothing as available in production until feature specs ship.
 
 ## Acceptance criteria
 
-* [ ] AC-1: A plain JavaScript page can import the package, initialize it and shut it down with no runtime dependencies.
-* [ ] AC-2: Repeated `init` calls follow the rules above.
-* [ ] AC-3: Starting offline succeeds and reports `offline`. Connection changes emit an event.
-* [ ] AC-4: `suspend` and `resume` fire in Chromium, Firefox and WebKit when the tab is hidden and shown.
-* [ ] AC-5: Unavailable features report `false` from `features.has` and do not throw.
-* [ ] AC-6: Error codes come from the shared package used by the backend and CLI (XC-005).
-* [ ] AC-7: Mock mode runs with no network requests.
-* [ ] AC-8: The core gzipped bundle stays within a size budget agreed during review and enforced in CI.
+* [x] AC-1: A plain JavaScript page can import the package, initialize it and shut it down with no runtime dependencies.
+* [x] AC-2: Repeated `init` calls follow the rules above.
+* [x] AC-3: Starting offline succeeds and reports `offline`. Connection changes emit an event.
+* [ ] AC-4: `suspend` and `resume` fire in Chromium, Firefox and WebKit when the tab is hidden and shown. Automated tests pass in all three using a simulated visibility value, because headless browsers don't hide pages. A manual check with real tab switching is still needed.
+* [x] AC-5: Unavailable features report `false` from `features.has` and do not throw.
+* [x] AC-6: Error codes come from the shared package intended for the backend and CLI (XC-005).
+* [x] AC-7: Mock mode runs with no network requests.
+* [x] AC-8: The core gzipped bundle stays within the size budget of 15 KB, enforced by the build.
 
 ## Design
 
-* Core with lazily loaded feature modules, so games only pay for the features they use.
+* Feature modules will be lazily loaded, so games only pay for the features they use. No feature module exists yet.
 * Lifecycle events are based on the Page Visibility and Page Lifecycle APIs where available.
-* The configuration is validated with Zod.
+* The configuration is validated with `zod/mini`, which keeps the bundle small. Zod and `@gamingalo/errors` are bundled, so the package has no runtime dependencies.
 
 ## Security and privacy
 
@@ -79,14 +96,15 @@ Rules:
 
 ## Tasks
 
-* [ ] Create the package in the Nx workspace
-* [ ] Add shared error codes
-* [ ] Implement init, shutdown and lifecycle
-* [ ] Implement feature discovery and connection state
-* [ ] Implement mock mode
-* [ ] Add browser tests and the bundle size check
+* [x] Create the package in the Nx workspace
+* [x] Add shared error codes
+* [x] Implement init, shutdown and lifecycle
+* [x] Implement feature discovery and connection state
+* [x] Implement mock mode
+* [x] Add browser tests and the bundle size check
+* [ ] Check real tab switching manually in Chromium, Firefox and Safari (AC-4)
 
 ## Open questions
 
-* What is the core bundle size budget? Suggested starting point: 15 KB gzipped.
-* Should the npm scope be `@gamingalo`? Check that it's available.
+* Confirm the 15 KB budget. The bundle is currently about 8 KB, mostly configuration validation.
+* Should the npm scope be `@gamingalo`? Registering it hasn't been checked or done.
