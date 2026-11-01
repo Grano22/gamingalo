@@ -1,0 +1,41 @@
+# Phase 1: First playable
+
+**Goal:** a game maker publishes with one command, and a player can play the game and keep their saves across devices.
+
+## Specs
+
+| Spec | Covers | Status |
+|---|---|---|
+| `sdk-initiation_0.0.1` | SDK-001, SDK-009, XC-005 | Draft |
+| `backend-core_0.1.0` | BE-001, XC-006 | Not started |
+| `identity_0.1.0` | BE-002, SDK-002, SDK-011, WEB-004, XC-008, XC-009, XC-010 | Not started |
+| `game-hosting_0.1.0` | BE-003, BE-004, BE-005, WEB-003, XC-002 | Not started |
+| `game-memory_0.1.0` | SDK-003, SDK-004, SDK-005, SDK-006, BE-006, WEB-006 | Not started |
+| `sdk-device-settings_0.1.0` | SDK-007, SDK-008 | Not started |
+| `wrapper-adapters_0.1.0` | WRAP-001, WRAP-002, WRAP-003 | Not started |
+| `cli-publish_0.1.0` | CLI-001, CLI-002, CLI-003, CLI-004, CLI-005, CLI-006, CLI-008 | Not started |
+| `web-shell_0.1.0` | WEB-001, WEB-002, WEB-005, XC-007, XC-017 | Not started |
+
+## Order
+
+1. `sdk-initiation` and `backend-core`
+2. `identity` and `game-hosting`
+3. Everything else, in parallel
+
+## Exit criteria
+
+* [ ] A Three.js sample and a Godot sample are published with `gamingalo game:publish` from CI.
+* [ ] Publishing fails when a game exceeds a static budget in `gamingalo.json`.
+* [ ] An unsigned or tampered upload is rejected.
+* [ ] A sample attack game can't read another game's storage or the player's platform token.
+* [ ] A guest can play, upgrade to an account and keep their saves.
+* [ ] A save made on one device loads on another. A conflict never silently loses progress.
+* [ ] Saves survive going offline and reconnecting. Local eviction is detected and recovered from the cloud.
+* [ ] Rollback restores a previous version without affecting saves.
+* [ ] A player can export their data and delete their account.
+* [ ] End-to-end tests pass across the support matrix, and the platform passes a WCAG 2.2 AA audit.
+
+## Risks
+
+* Godot's web export may limit the bridge or need cross-origin isolation. Test this early.
+* Hosting third-party code is risky. Keep this phase invitation-only and review each game.

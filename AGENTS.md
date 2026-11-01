@@ -1,87 +1,55 @@
+# Gamingalo
 
-## Shared Techstack
-* Language - Typescript
-* Monorepo - nx
-* Module boundler - vite
-* Unit/Functional Testing - vitest
+Web game platform: an SDK for game makers, a game wrapper, a web platform, a backend, a CLI and an MCP server.
+
+## Where things live
+
+| Path | Purpose |
+|---|---|
+| `features/` | Requirements with stable IDs, grouped by component. The source of truth for what we build. |
+| `phases/` | Delivery plan. Each phase lists its specs and exit criteria. |
+| `.specs/` | One folder per spec (`<name>_<version>/spec.md`). See `.specs/README.md`. |
+| `docs/decisions.md` | Decisions, working defaults and open questions. |
+| `infra/` | OpenTofu: `bootstrap` (state backend) and `living_repo` (workload). |
+| `.draft/` | Original idea notes. Not authoritative. |
+
+## How to work
+
+1. Find the requirement in `features/` and its spec in the current phase. Do not build a feature without a spec.
+2. If the spec is missing, create it from `.specs/_template/spec.md` and get it approved before writing code.
+3. Implement against the acceptance criteria and reference requirement IDs in tests and PRs.
+4. If the work changes a requirement or decision, update `features/` or `docs/decisions.md` in the same change.
+5. If a task depends on an `Open` decision, stop and ask.
+6. After each completed feature, commit using [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(sdk): add lifecycle events`.
+
+## Shared tech stack
+
+* Language: TypeScript
+* Monorepo: Nx
+* Bundler: Vite
+* Unit and functional tests: Vitest
+* Real-browser end-to-end tests: Playwright
 * Schema validation:
-  * zod (for internal structure enforcement)
-  * json schema (for external semistructured files that project should support like: gamingalo.json)
+  * Zod is the source of truth for internal structures.
+  * JSON Schema for external files such as `gamingalo.json` is generated from Zod.
+* Infrastructure: OpenTofu on AWS
 
-## Components
+## Component tech stack
 
-### SDK
+| Component | Stack |
+|---|---|
+| SDK | TypeScript library, no framework dependency |
+| Game Wrapper | Core SDK plus engine and framework adapters |
+| Web Platform | Angular, Vertical Slice Architecture, Testing Library, PrimeNG, Tailwind, Lucide, NgRx Signals |
+| Backend | See D-05 in `docs/decisions.md` |
+| CLI | TypeScript, Node.js, commander |
+| MCP Server | TypeScript, read-only by default |
 
-Core library for game makers that provides a facade of public methods from various features listed below.
+## Rules that must not be broken
 
-#### Features
-* Online Services:
-  * Peer to Peer online multiplayer
-  * Server based online multipler (cusotom + Gamingalo offical certified)
-  * Profies
-  * Friends
-  * Profile Achievemnets
-  * Player score
-  * Trophies
-  * Groups
-* Game memory - use all web apis/features in browser to provide unified local and online storage for game saves, things created in game by player like club logo, also possiblity to read and upload things form otuside like from marketplace some addons or uploaded music for cusotm radio etc. IndexedDb and altneratives for local persistance and for only game session/local storage, cache etc. Also secured memory sectors to prevent from easy changing some props in mmeory like health in js.
-* Online sync - on game load sync data, sync realtime progress etc
-* DRM/Defedning the content from being stealed - Sophiscated APIs to prevent content extraction by player (in game secured content such as cutscenes, protected models, music, scripts mechanics for instance patented, sfx, etc), so assets can be protected
-* Capture API - do screenshots/recordings/stream screen and safe (public/private) to the profile/locally download, stream.
-* Accessiblity - High contrast filters, screen reader (can use browser one if supprots under the hood if nto it's own), 
-* Anti automatin/outside control - only used controlled inputs, no AI for cheating, Automation browser/CDP/Webdriver/Bidi etc blocked form controlling the game/cheating.
-* Paywall system with checks for paid content - loaded paid content only if player is allowed.
-* Moderation API - detecting the sensitive content/swears etc.. photos, text, other uplaads. Can be limited intially.
-* One time API - give to the game crwators psosiblity to perform action only once in secure way.
-* Network API - Get IP, Mac, Game network session id, netork stats - ping, fluctuations, jitter, throughput, etc
-* Environment API - browser, its capabalities, what device has turned on/off, device info, supproted displays, hardware etc
-* Settings API - allows to control some webgpu, etc session from the high level and save cusotom Settings (Preferfeces AI)
-
-#### Techstack
-
-### Web Platform
-
-### Architecture
-* VSA (Verical Slice Architecture)
-
-#### Techstack
-* Framework - angular
-* Unit/Functional Testing - testing-library
-* UI:
-  * Lucide
-  * PrimeNG
-  * Tailwinds
-  * shadcn
-* Shared state:
-  * NgRx signals
-
-### Game Wrapper
-
-Game wrapper has core SDK + possiblity to mount on the game in pure JS, angular, react, vue etc. So it can be mount on canvas etc to inject its features
-
-#### Features
-* Game stats collection - number of unique players online/played, browser names/PWA, per country, fingerprint, unqiue game visits.
-* Quick Resume
-
-#### Techstack
-
-### MCP Server
-
-#### Features
-* Exposing info about available 3D models and features that they have
-* Public porfiles listing
-* Public game stats
-
-### CLI Component
-
-CLI binary that helps the game producer to upload the game to the webplatform, debug SDK, 
-
-#### Features
-* Devtools for SDK
-* Possiblity to publish game with one command `gamingalo game:publish` and gameSrttings.json
-* Signing the game/securing it before upload
-* Budget
-
-#### Techstack
-* Typescript + Node.js
-* Framework - picocli
+* The client is untrusted. Currency, entitlements, ranked results, scores and one-time actions are decided on the server.
+* Describe client-side protection as raising the cost of an attack, never as a guarantee.
+* Third-party games run on isolated origins and never receive platform session tokens.
+* Never expose raw IP addresses or fingerprints to game code.
+* Protection features must not block assistive technology.
+* Never commit credentials, state files or real `.tfvars` files.
