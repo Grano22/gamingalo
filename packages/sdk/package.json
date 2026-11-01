@@ -1,0 +1,27 @@
+{
+  "name": "@gamingalo/sdk",
+  "version": "0.0.1",
+  "description": "Gamingalo SDK for game makers",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "vite build && node scripts/check-size.mjs",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@gamingalo/errors": "*",
+    "zod": "^4.6.7"
+  }
+}
