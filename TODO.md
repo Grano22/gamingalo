@@ -18,3 +18,4 @@ Questions waiting for an answer from the project owner. See the rule in `AGENTS.
 ## Manual checks
 
 * [ ] Does switching tabs fire `suspend` and `resume` in real Chromium, Firefox and Safari? Automated tests can only simulate it (AC-4 in `sdk-initiation_0.0.1`).
+* [ ] Do the SDK accessibility menus work with real VoiceOver and NVDA? Automated tests check roles and names, but can't replace a screen reader (`player-experience_0.1.0`).
