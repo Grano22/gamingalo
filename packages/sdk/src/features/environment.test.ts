@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { computeTier, parseUserAgent, readEnvironment, watchDevices } from './environment';
-import { Gamingalo } from './index';
+import { Gamingalo } from '../index';
 
 afterEach(async () => {
   vi.unstubAllGlobals();

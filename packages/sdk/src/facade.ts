@@ -1,10 +1,10 @@
 import { GamingaloError } from '@gamingalo/errors';
 import type { GamingaloConfig, GamingaloMode, ResolvedConfig } from './config';
 import { resolveConfig } from './config';
-import { readBrowserConnection, watchBrowserConnection, type ConnectionState } from './connection';
-import { MOCK_ENVIRONMENT, readEnvironment, watchDevices, type Environment } from './environment';
-import type { Features } from './features';
-import { isPageHidden, watchPageLifecycle } from './lifecycle';
+import { readBrowserConnection, watchBrowserConnection, type ConnectionState } from './features/connection';
+import type { Features } from './features/discovery';
+import { MOCK_ENVIRONMENT, readEnvironment, watchDevices, type Environment } from './features/environment';
+import { isPageHidden, watchPageLifecycle } from './features/lifecycle';
 
 export interface SdkEventMap {
   suspend: undefined;
@@ -42,46 +42,31 @@ export interface GamingaloSdk {
   shutdown(): Promise<void>;
 }
 
-class SdkInstance implements GamingaloSdk {
+/**
+ * The facade only connects plain feature functions from `features/` and holds
+ * per-session state. Feature logic belongs in the feature modules.
+ */
+class Facade implements GamingaloSdk {
   readonly #config: ResolvedConfig;
   readonly #onShutdown: () => void;
   readonly #handlers = new Map<keyof SdkEventMap, Set<(payload: never) => void>>();
   readonly #stopWatching: Array<() => void> = [];
-  readonly #mockControls: MockControls | undefined;
   #active = true;
   #connection: ConnectionState;
   #suspended: boolean;
+
+  readonly #api: Pick<GamingaloSdk, 'features' | 'connection' | 'environment' | 'mock'>;
 
   constructor(config: ResolvedConfig, onShutdown: () => void) {
     this.#config = config;
     this.#onShutdown = onShutdown;
 
-    if (config.mode === 'mock') {
-      // Browser state is ignored so that tests stay deterministic.
-      this.#connection = config.mock.connection;
-      this.#suspended = false;
-      this.#mockControls = {
-        setConnection: (state) => {
-          this.#assertActive();
-          this.#setConnection(state);
-        },
-        suspend: () => {
-          this.#assertActive();
-          this.#suspend();
-        },
-        resume: () => {
-          this.#assertActive();
-          this.#resume();
-        },
-        devicesChanged: () => {
-          this.#assertActive();
-          this.#emit('devices', undefined);
-        },
-      };
-    } else {
-      this.#connection = readBrowserConnection();
-      this.#suspended = isPageHidden();
-      this.#mockControls = undefined;
+    const mocked = config.mode === 'mock';
+    // Browser state is ignored in mock mode so that tests stay deterministic.
+    this.#connection = mocked ? config.mock.connection : readBrowserConnection();
+    this.#suspended = mocked ? false : isPageHidden();
+
+    if (!mocked) {
       this.#stopWatching.push(
         watchBrowserConnection((state) => this.#setConnection(state)),
         watchPageLifecycle(
@@ -91,6 +76,32 @@ class SdkInstance implements GamingaloSdk {
         watchDevices(() => this.#emit('devices', undefined)),
       );
     }
+
+    const setConnection = (state: ConnectionState) => this.#setConnection(state);
+    const getConnection = () => this.#connection;
+
+    this.#api = {
+      features: this.#guard<Features>({
+        has: (name) => (config.mock.features as string[]).includes(name),
+      }),
+      connection: this.#guard<Connection>({
+        get state() {
+          return getConnection();
+        },
+      }),
+      environment: this.#guard<Environment>({
+        read: async () =>
+          mocked ? structuredClone({ ...MOCK_ENVIRONMENT, ...config.mock.environment }) : readEnvironment(),
+      }),
+      mock: mocked
+        ? this.#guard<MockControls>({
+            setConnection,
+            suspend: () => this.#suspend(),
+            resume: () => this.#resume(),
+            devicesChanged: () => this.#emit('devices', undefined),
+          })
+        : undefined,
+    };
   }
 
   get gameId(): string {
@@ -105,43 +116,22 @@ class SdkInstance implements GamingaloSdk {
 
   get features(): Features {
     this.#assertActive();
-    return {
-      has: (name) => {
-        this.#assertActive();
-        return (this.#config.mock.features as string[]).includes(name);
-      },
-    };
+    return this.#api.features;
   }
 
   get connection(): Connection {
     this.#assertActive();
-    const read = () => {
-      this.#assertActive();
-      return this.#connection;
-    };
-    return {
-      get state() {
-        return read();
-      },
-    };
+    return this.#api.connection;
   }
 
   get environment(): Environment {
     this.#assertActive();
-    return {
-      read: async () => {
-        this.#assertActive();
-        if (this.#config.mode === 'mock') {
-          return structuredClone({ ...MOCK_ENVIRONMENT, ...this.#config.mock.environment });
-        }
-        return readEnvironment();
-      },
-    };
+    return this.#api.environment;
   }
 
   get mock(): MockControls | undefined {
     this.#assertActive();
-    return this.#mockControls;
+    return this.#api.mock;
   }
 
   on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void {
@@ -164,6 +154,21 @@ class SdkInstance implements GamingaloSdk {
     this.#stopWatching.forEach((stop) => stop());
     this.#handlers.clear();
     this.#onShutdown();
+  }
+
+  /** Makes a feature API throw `SDK_NOT_INITIALIZED` once the SDK has been shut down. */
+  #guard<T extends object>(api: T): T {
+    return new Proxy(api, {
+      get: (target, key) => {
+        this.#assertActive();
+        const value: unknown = Reflect.get(target, key);
+        if (typeof value !== 'function') return value;
+        return (...args: unknown[]) => {
+          this.#assertActive();
+          return value.apply(target, args);
+        };
+      },
+    });
   }
 
   #assertActive(): void {
@@ -202,7 +207,7 @@ class SdkInstance implements GamingaloSdk {
   }
 }
 
-let current: { key: string; sdk: SdkInstance } | undefined;
+let current: { key: string; sdk: Facade } | undefined;
 
 export const Gamingalo = {
   /**
@@ -221,7 +226,7 @@ export const Gamingalo = {
       );
     }
 
-    const sdk = new SdkInstance(resolved, () => {
+    const sdk = new Facade(resolved, () => {
       current = undefined;
     });
     current = { key, sdk };

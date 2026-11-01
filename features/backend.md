@@ -1,6 +1,6 @@
 # Backend requirements
 
-The original spec had no backend, but most online SDK features depend on one. All entries are proposed.
+This is the platform's backend, not part of the SDK. The SDK works without it, and calls a foreign API like this one only for extended online features (D-19). All entries are proposed.
 
 | ID | Requirement | Origin | Phase |
 |---|---|---|---|

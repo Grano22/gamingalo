@@ -1,6 +1,6 @@
 # SDK requirements
 
-Core library for game makers, exposed as a single public facade.
+Core library for game makers: a single public facade whose methods come from plain feature functions. Basic use runs entirely inside the library. Only extended online features call a foreign API (D-19).
 
 ## Core
 

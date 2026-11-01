@@ -61,7 +61,7 @@ Then apply the answer wherever it belongs, such as `docs/decisions.md`.
 
 | Component | Stack |
 |---|---|
-| SDK | TypeScript library, no framework dependency |
+| SDK | Plain TypeScript library with no framework dependency and no backend of its own. `src/features/*` holds plain feature functions, and `src/facade.ts` only exposes them as methods. Only extended online features call a foreign API (D-19). |
 | Game Wrapper | Core SDK plus engine and framework adapters |
 | Web Platform | Angular, Vertical Slice Architecture, Testing Library, PrimeNG, Tailwind, Lucide, NgRx Signals |
 | Backend | See D-05 in `docs/decisions.md` |

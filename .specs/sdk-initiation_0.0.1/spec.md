@@ -79,7 +79,7 @@ Rules:
 
 ## Design
 
-* Feature modules will be lazily loaded, so games only pay for the features they use. No feature module exists yet.
+* The SDK is a plain library (D-19). Plain feature functions live in `src/features/*`, and `src/facade.ts` exposes them as methods.
 * Lifecycle events are based on the Page Visibility and Page Lifecycle APIs where available.
 * The configuration is validated with `zod/mini`, which keeps the bundle small. Zod and `@gamingalo/errors` are bundled, so the package has no runtime dependencies.
 

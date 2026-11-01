@@ -1,8 +1,8 @@
 import { GamingaloError } from '@gamingalo/errors';
 import * as z from 'zod/mini';
-import { CONNECTION_STATES, type ConnectionState } from './connection';
-import type { EnvironmentInfo } from './environment';
-import { FEATURE_NAMES, type FeatureName } from './features';
+import { CONNECTION_STATES, type ConnectionState } from './features/connection';
+import type { EnvironmentInfo } from './features/environment';
+import { FEATURE_NAMES, type FeatureName } from './features/discovery';
 
 const configSchema = z.strictObject({
   gameId: z.string().check(z.regex(/^[a-z0-9][a-z0-9-]{0,62}$/)),

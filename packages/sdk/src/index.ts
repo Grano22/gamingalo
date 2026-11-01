@@ -1,8 +1,5 @@
 export { GamingaloError, isGamingaloError, type ErrorCode } from '@gamingalo/errors';
 export type { GamingaloConfig, GamingaloMode, MockOptions } from './config';
-export type { ConnectionState } from './connection';
-export type { BrowserName, CapabilityTier, Environment, EnvironmentInfo } from './environment';
-export type { FeatureName, Features } from './features';
 export {
   Gamingalo,
   type Connection,
@@ -10,4 +7,13 @@ export {
   type MockControls,
   type SdkEventHandler,
   type SdkEventMap,
-} from './sdk';
+} from './facade';
+export type { ConnectionState } from './features/connection';
+export type { FeatureName, Features } from './features/discovery';
+export {
+  readEnvironment,
+  type BrowserName,
+  type CapabilityTier,
+  type Environment,
+  type EnvironmentInfo,
+} from './features/environment';

@@ -26,3 +26,4 @@ Status meanings:
 | D-16 | Anti-automation | Default | Collect risk signals and score them on the server. Do not promise to block automation or AI. | SDK-031, BE-021 |
 | D-17 | One Time API meaning | Default | An atomic server-side claim scoped to game, profile and key. Requires a connection and is safe to retry. | SDK-017, BE-014 |
 | D-18 | Fingerprinting | Default | Use a first-party ID for stats. Any fingerprinting requires consent and legal approval, and is never exposed to games. | WRAP-005 |
+| D-19 | SDK shape | Decided | The SDK is a plain library: a facade whose methods come from feature functions. Basic use runs entirely inside the library, with no backend or API of its own. Only extended online features call a foreign API. | All SDK requirements, BE-001 |
