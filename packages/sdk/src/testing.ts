@@ -6,6 +6,7 @@ import { GamingaloError } from '@gamingalo/errors';
 import { snapshotOwn } from './config';
 import { buildSdk, type GamingaloSdk } from './facade';
 import { createMemoryCache } from './features/cache';
+import { createMemoryFiles } from './features/files';
 import { CONNECTION_STATES, type ConnectionState } from './features/connection';
 import { FEATURE_NAMES, type FeatureName } from './features/discovery';
 import type { EnvironmentInfo } from './features/environment';
@@ -22,7 +23,7 @@ export interface MockOptions {
   gameId?: string;
   /** Starting connection state. Defaults to `online`. */
   connection?: ConnectionState;
-  /** Features reported as available. Defaults to the features that work in mock mode (`saves`). */
+  /** Features reported as available. Defaults to the features that work in mock mode (`saves`, `files`). */
   features?: FeatureName[];
   /** Replaces top-level sections of the fixed mock environment. */
   environment?: Partial<EnvironmentInfo>;
@@ -107,7 +108,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   const connection = own['connection'] ?? 'online';
   if (!includes(CONNECTION_STATES, connection)) throw invalid('Unknown connection state.');
 
-  const featureList = own['features'] ?? ['saves'];
+  const featureList = own['features'] ?? ['saves', 'files'];
   if (!Array.isArray(featureList) || !featureList.every((name) => includes(FEATURE_NAMES, name))) {
     throw invalid('Unknown feature.');
   }
@@ -127,6 +128,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
       store: createMemoryStore(),
       cache: createMemoryCache(),
       saveBackend: features.has('saves') ? createMemorySaveBackend() : undefined,
+      files: features.has('files') ? createMemoryFiles() : undefined,
       storage: createMockStorageInfo(),
       onShutdown: () => {},
     },

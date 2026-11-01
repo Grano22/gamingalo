@@ -1,6 +1,6 @@
 {
   "name": "@gamingalo/sdk",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Gamingalo SDK for game makers",
   "type": "module",
   "sideEffects": false,

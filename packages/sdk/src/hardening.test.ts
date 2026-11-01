@@ -348,5 +348,6 @@ describe('mock mode', () => {
     const withCapture = await createMockSdk({ features: ['capture'] });
     expect(withCapture.features.has('capture')).toBe(true);
     expect(withCapture.features.has('saves')).toBe(false);
+    expect(withCapture.features.has('files')).toBe(false);
   });
 });

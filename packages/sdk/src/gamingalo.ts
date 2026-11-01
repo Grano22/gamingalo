@@ -4,6 +4,7 @@ import { buildSdk, type GamingaloSdk } from './facade';
 import { createGameCache } from './features/cache';
 import { readBrowserConnection, watchBrowserConnection } from './features/connection';
 import { readEnvironment, watchDevices } from './features/environment';
+import { getBrowserFiles } from './features/files';
 import { isPageHidden, watchPageLifecycle } from './features/lifecycle';
 import { getBrowserSaveBackend } from './features/saves';
 import { getBrowserStore } from './features/settings';
@@ -35,6 +36,7 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
 
   running = true;
   const saveBackend = getBrowserSaveBackend(gameId);
+  const files = getBrowserFiles(gameId);
 
   return buildSdk(
     {
@@ -42,11 +44,12 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       realm,
       connection: readBrowserConnection(),
       suspended: isPageHidden(),
-      hasFeature: (name) => name === 'saves' && !!saveBackend,
+      hasFeature: (name) => (name === 'saves' && !!saveBackend) || (name === 'files' && !!files),
       readEnvironment,
       store: getBrowserStore(),
       cache: createGameCache(gameId),
       saveBackend,
+      files,
       storage: createBrowserStorageInfo(),
       onShutdown: () => {
         running = false;

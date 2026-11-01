@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, webkit, type Page } from '@playwright/test';
 import type { GamingaloEntry, GamingaloSdk } from '../src/index';
 
 declare global {
@@ -247,4 +247,94 @@ test('storage: reports usage and handles persistence requests', async ({ page })
   expect([true, false, 'pending']).toContain(result.granted);
   expect(typeof result.persistent).toBe('boolean');
   if (result.estimate !== 'unknown') expect(result.estimate.quotaBytes).toBeGreaterThan(0);
+});
+
+async function checkLargeFiles(page: Page): Promise<void> {
+  const size = 8 * 1024 * 1024;
+  await page.goto('/e2e/fixture.html');
+  await page.waitForFunction(() => window.ready);
+  await page.evaluate(async (bytes) => {
+    const sdk = await window.Gamingalo.init({ gameId: 'files-a' });
+    await sdk.files.write('music/song 1.mp3', new Blob([new Uint8Array(bytes).fill(7)], { type: 'audio/mpeg' }));
+    await sdk.files.write('replace', 'first');
+    await sdk.files.write('replace', 'second');
+    await sdk.files.write('stream', new Blob(['streamed']).stream() as ReadableStream<Uint8Array<ArrayBuffer>>);
+  }, size);
+
+  await page.reload();
+  await page.waitForFunction(() => window.ready);
+
+  const result = await page.evaluate(async () => {
+    const gameA = await window.Gamingalo.init({ gameId: 'files-a' });
+    const song = await gameA.files.read('music/song 1.mp3');
+    const last = new Uint8Array(await (song as File).slice(-1).arrayBuffer())[0];
+    const values = {
+      available: await gameA.files.available(),
+      name: song?.name,
+      size: song?.size,
+      last,
+      replaced: await (await gameA.files.read('replace'))?.text(),
+      streamed: await (await gameA.files.read('stream'))?.text(),
+      names: (await gameA.files.list()).map((info) => info.name).sort(),
+      missing: (await gameA.files.read('nope')) ?? null,
+      deleted: [await gameA.files.delete('replace'), await gameA.files.delete('replace')],
+    };
+    await gameA.shutdown();
+    const gameB = await window.Gamingalo.init({ gameId: 'files-b' });
+    return { ...values, otherGame: (await gameB.files.read('replace')) ?? null, otherList: await gameB.files.list() };
+  });
+
+  expect(result).toEqual({
+    available: true,
+    name: 'music/song 1.mp3',
+    size,
+    last: 7,
+    replaced: 'second',
+    streamed: 'streamed',
+    names: ['music/song 1.mp3', 'replace', 'stream'],
+    missing: null,
+    deleted: [true, false],
+    otherGame: null,
+    otherList: [],
+  });
+}
+
+test('files: large files survive a reload, replace safely and stay separate per game', async ({
+  page,
+  browserName,
+}) => {
+  // Playwright's WebKit contexts behave like private browsing. See the two WebKit tests below.
+  test.skip(browserName === 'webkit');
+  await checkLargeFiles(page);
+});
+
+test('files: the same behavior in a persistent WebKit profile, as in normal Safari use', async ({
+  browserName,
+  baseURL,
+}, testInfo) => {
+  test.skip(browserName !== 'webkit');
+  const context = await webkit.launchPersistentContext(testInfo.outputPath('profile'), {
+    ...(baseURL ? { baseURL } : {}),
+  });
+  try {
+    await checkLargeFiles(await context.newPage());
+  } finally {
+    await context.close();
+  }
+});
+
+test('files: a private WebKit session reports unavailable and fails cleanly', async ({ page, browserName }) => {
+  test.skip(browserName !== 'webkit');
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const sdk = await window.Gamingalo.init({ gameId: 'files-private' });
+    let code = '';
+    try {
+      await sdk.files.write('a', 'x');
+    } catch (error) {
+      code = (error as { code: string }).code;
+    }
+    return { has: sdk.features.has('files'), available: await sdk.files.available(), code };
+  });
+  expect(result).toEqual({ has: true, available: false, code: 'STORAGE_UNAVAILABLE' });
 });

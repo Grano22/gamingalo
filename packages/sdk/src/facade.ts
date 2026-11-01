@@ -1,5 +1,6 @@
 import { GamingaloError } from '@gamingalo/errors';
 import type { GameCache } from './features/cache';
+import type { GameFiles } from './features/files';
 import type { ConnectionState } from './features/connection';
 import type { Features } from './features/discovery';
 import type { Environment, EnvironmentInfo } from './features/environment';
@@ -49,6 +50,8 @@ export interface GamingaloSdk {
   readonly cache: GameCache;
   /** Throws `FEATURE_UNAVAILABLE` when `features.has('saves')` is `false`. */
   readonly saves: Saves;
+  /** Throws `FEATURE_UNAVAILABLE` when `features.has('files')` is `false`. */
+  readonly files: GameFiles;
   readonly storage: StorageInfo;
   /** Subscribes to an event and returns a function that unsubscribes. */
   on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void;
@@ -67,6 +70,7 @@ export interface SdkParts {
   store: KeyValueStore | undefined;
   cache: GameCache;
   saveBackend: SaveBackend | undefined;
+  files: GameFiles | undefined;
   storage: StorageInfo;
   onShutdown: () => void;
 }
@@ -167,6 +171,7 @@ export function buildSdk<Extra extends object = object>(
   const saves =
     saveBackend && guard(createSaves({ gameId: parts.gameId, backend: saveBackend, markers: parts.store }));
   if (saveBackend) cleanups.add(() => saveBackend.close());
+  const files = parts.files && guard(parts.files);
 
   const api = {
     get gameId() {
@@ -198,6 +203,12 @@ export function buildSdk<Extra extends object = object>(
         throw new GamingaloError('FEATURE_UNAVAILABLE', 'Saves need IndexedDB, which this environment does not provide.');
       }
       return saves;
+    },
+    get files() {
+      if (!files) {
+        throw new GamingaloError('FEATURE_UNAVAILABLE', 'Files need OPFS, which this environment does not provide.');
+      }
+      return files;
     },
     get storage() {
       return storage;

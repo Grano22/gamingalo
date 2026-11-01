@@ -70,8 +70,8 @@ function isPlainObject(value: object): value is Record<string, unknown> {
 }
 
 /**
- * Replaces Blobs inside arrays and plain objects with their bytes, because WebKit can refuse to
- * store Blobs in IndexedDB. Handles shared and circular references.
+ * Replaces Blobs inside arrays and plain objects with their bytes, because WebKit refuses to
+ * store Blobs in IndexedDB in ephemeral sessions such as private browsing. Handles shared and circular references.
  */
 export async function encodeBlobs(value: unknown, seen = new Map<object, unknown>()): Promise<unknown> {
   if (typeof value !== 'object' || value === null) return value;

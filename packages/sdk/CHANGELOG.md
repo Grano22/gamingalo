@@ -2,6 +2,14 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-11-01
+
+### Added
+
+* `sdk.files`: per-game storage for large files in OPFS, accepting Blobs, buffers, text and streams. A failed write leaves the previous file intact.
+* `sdk.files.available()` checks that storage really works, because Safari refuses OPFS in private sessions.
+* `files` in `features.has()`, and memory-backed files in mock mode.
+
 ## [0.5.0] - 2026-11-01
 
 ### Added

@@ -19,10 +19,10 @@ Games need a simple, reliable place for session data, cached files and player sa
 * `sdk.cache`: downloadable or generated files that the browser may discard.
 * `sdk.saves`: save slots with schema versions and migrations, including binary data such as a club logo.
 * `sdk.storage`: usage, quota and requests for persistent storage.
+* `sdk.files`: large files such as imported music, using OPFS.
 
 ### Later increments
 
-* Large files in OPFS (the rest of SDK-003).
 * Online sync through a foreign API, and the backend and platform parts (SDK-006, BE-006, WEB-006). The cloud quota depends on D-08.
 
 ## Behavior
@@ -56,6 +56,8 @@ Rules:
 * Full storage rejects with `STORAGE_QUOTA_EXCEEDED`. Other storage failures reject with `STORAGE_UNAVAILABLE`. A failed write leaves the previous save intact.
 * Without IndexedDB, `features.has('saves')` is `false` and `sdk.saves` throws `FEATURE_UNAVAILABLE`. Saves never silently fall back to memory, because the player would lose progress.
 * The cache may fall back to memory, since its contents can always be recreated.
+* Without OPFS, `features.has('files')` is `false` and `sdk.files` throws `FEATURE_UNAVAILABLE`.
+* WebKit refuses OPFS, and raw Blobs in IndexedDB, in ephemeral sessions like private browsing. Both work in a persistent profile. In a private session, `files.available()` returns `false` and other file calls reject with `STORAGE_UNAVAILABLE`.
 * In mock mode, nothing touches browser storage.
 
 ## Acceptance criteria
@@ -68,12 +70,13 @@ Rules:
 * [x] AC-6: `wasEvicted` reports `true` once when saves disappear unexpectedly, and not after normal deletes.
 * [x] AC-7: `storage.estimate` and `requestPersistence` work where supported and never throw where they aren't.
 * [x] AC-8: The core bundle stays within budget.
+* [x] AC-9: Large files survive a reload in Chromium, Firefox and WebKit, are separate for each game, and a failed write leaves the previous file intact.
 
 ## Design
 
 * Plain feature functions in `src/features`, exposed by the facade (D-19).
 * Saves use IndexedDB and store whole records, so each write is atomic.
-* Blobs and Files inside arrays and plain objects are stored as bytes and restored on read, because WebKit can refuse raw Blobs in IndexedDB. A Blob inside a `Map` or `Set` isn't converted, so it can fail in WebKit.
+* Blobs and Files inside arrays and plain objects are stored as bytes and restored on read, because WebKit refuses raw Blobs in IndexedDB in ephemeral sessions. A Blob inside a `Map` or `Set` isn't converted, so it can fail in WebKit.
 * `requestPersistence` can stay pending while Firefox asks the player, so games shouldn't wait on it during startup.
 * Eviction detection uses a marker in `localStorage`. Safari can clear both stores together, in which case eviction can't be detected. Calling `requestPersistence` and using online sync are the real protections.
 
@@ -91,7 +94,7 @@ Rules:
 * [x] Session memory and cache
 * [x] Saves, migrations and eviction detection
 * [x] Storage quota and persistence
-* [ ] OPFS for large files
+* [x] OPFS for large files
 * [ ] Online sync through a foreign API
 * [ ] Backend and platform parts
 

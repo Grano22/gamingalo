@@ -1,6 +1,7 @@
 /** Features a game can ask about. Each one becomes available when its spec ships. */
 export const FEATURE_NAMES = [
   'saves',
+  'files',
   'profiles',
   'social',
   'achievements',

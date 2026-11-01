@@ -5,6 +5,7 @@ export type { Connection, GamingaloSdk, SdkEventHandler, SdkEventMap } from './f
 export type { CacheData, GameCache } from './features/cache';
 export type { ConnectionState } from './features/connection';
 export type { FeatureName, Features } from './features/discovery';
+export type { FileData, FileInfo, GameFiles } from './features/files';
 export {
   readEnvironment,
   type BrowserName,
