@@ -5,6 +5,13 @@ import { readBrowserConnection, watchBrowserConnection, type ConnectionState } f
 import type { Features } from './features/discovery';
 import { MOCK_ENVIRONMENT, readEnvironment, watchDevices, type Environment } from './features/environment';
 import { isPageHidden, watchPageLifecycle } from './features/lifecycle';
+import {
+  createMemoryStore,
+  createSettings,
+  getBrowserStore,
+  type GraphicsSettings,
+  type Settings,
+} from './features/settings';
 
 export interface SdkEventMap {
   suspend: undefined;
@@ -12,6 +19,8 @@ export interface SdkEventMap {
   connection: ConnectionState;
   /** A gamepad or media device was added or removed. Call `environment.read()` for current values. */
   devices: undefined;
+  /** The graphics preset changed. The game applies the recommended values to its renderer. */
+  graphics: GraphicsSettings;
 }
 
 export type SdkEventHandler<E extends keyof SdkEventMap> = (payload: SdkEventMap[E]) => void;
@@ -34,6 +43,7 @@ export interface GamingaloSdk {
   readonly features: Features;
   readonly connection: Connection;
   readonly environment: Environment;
+  readonly settings: Settings;
   /** `undefined` unless `mode` is `mock`. */
   readonly mock: MockControls | undefined;
   /** Subscribes to an event and returns a function that unsubscribes. */
@@ -55,7 +65,7 @@ class Facade implements GamingaloSdk {
   #connection: ConnectionState;
   #suspended: boolean;
 
-  readonly #api: Pick<GamingaloSdk, 'features' | 'connection' | 'environment' | 'mock'>;
+  readonly #api: Pick<GamingaloSdk, 'features' | 'connection' | 'environment' | 'settings' | 'mock'>;
 
   constructor(config: ResolvedConfig, onShutdown: () => void) {
     this.#config = config;
@@ -79,6 +89,8 @@ class Facade implements GamingaloSdk {
 
     const setConnection = (state: ConnectionState) => this.#setConnection(state);
     const getConnection = () => this.#connection;
+    const read = async () =>
+      mocked ? structuredClone({ ...MOCK_ENVIRONMENT, ...config.mock.environment }) : readEnvironment();
 
     this.#api = {
       features: this.#guard<Features>({
@@ -89,10 +101,15 @@ class Facade implements GamingaloSdk {
           return getConnection();
         },
       }),
-      environment: this.#guard<Environment>({
-        read: async () =>
-          mocked ? structuredClone({ ...MOCK_ENVIRONMENT, ...config.mock.environment }) : readEnvironment(),
-      }),
+      environment: this.#guard<Environment>({ read }),
+      settings: this.#guard<Settings>(
+        createSettings({
+          gameId: config.gameId,
+          store: mocked ? createMemoryStore() : getBrowserStore(),
+          readTier: async () => (await read()).tier,
+          onGraphicsChange: (graphics) => this.#emit('graphics', graphics),
+        }),
+      ),
       mock: mocked
         ? this.#guard<MockControls>({
             setConnection,
@@ -127,6 +144,11 @@ class Facade implements GamingaloSdk {
   get environment(): Environment {
     this.#assertActive();
     return this.#api.environment;
+  }
+
+  get settings(): Settings {
+    this.#assertActive();
+    return this.#api.settings;
   }
 
   get mock(): MockControls | undefined {

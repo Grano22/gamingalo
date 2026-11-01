@@ -11,7 +11,7 @@
 | `identity_0.1.0` | BE-002, SDK-002, SDK-011, WEB-004, XC-008, XC-009, XC-010 | Not started |
 | `game-hosting_0.1.0` | BE-003, BE-004, BE-005, WEB-003, XC-002 | Not started |
 | `game-memory_0.1.0` | SDK-003, SDK-004, SDK-005, SDK-006, BE-006, WEB-006 | Not started |
-| `sdk-device-settings_0.1.0` | SDK-007, SDK-008 | In progress |
+| `sdk-device-settings_0.1.0` | SDK-007, SDK-008 | Done |
 | `wrapper-adapters_0.1.0` | WRAP-001, WRAP-002, WRAP-003 | Not started |
 | `cli-publish_0.1.0` | CLI-001, CLI-002, CLI-003, CLI-004, CLI-005, CLI-006, CLI-008 | Not started |
 | `web-shell_0.1.0` | WEB-001, WEB-002, WEB-005, XC-007, XC-017 | Not started |

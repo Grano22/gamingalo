@@ -17,3 +17,11 @@ export {
   type Environment,
   type EnvironmentInfo,
 } from './features/environment';
+export {
+  resolveGraphics,
+  type GraphicsPreset,
+  type GraphicsSettings,
+  type JsonValue,
+  type QualityLevel,
+  type Settings,
+} from './features/settings';

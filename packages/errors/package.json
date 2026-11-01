@@ -1,6 +1,6 @@
 {
   "name": "@gamingalo/errors",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Error codes and error type shared by the Gamingalo SDK, backend and CLI",
   "type": "module",
   "sideEffects": false,

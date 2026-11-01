@@ -3,6 +3,7 @@ export const ERROR_DEFINITIONS = {
   SDK_NOT_INITIALIZED: { retryable: false },
   SDK_ALREADY_INITIALIZED: { retryable: false },
   INVALID_CONFIG: { retryable: false },
+  INVALID_ARGUMENT: { retryable: false },
   FEATURE_UNAVAILABLE: { retryable: false },
   NETWORK_OFFLINE: { retryable: true },
   INTERNAL: { retryable: false },

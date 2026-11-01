@@ -2,6 +2,18 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-11-01
+
+### Added
+
+* `sdk.settings`: per-game custom settings that persist between sessions and fall back to memory when storage is blocked or full.
+* Graphics presets (`auto`, `low`, `medium`, `high`) with recommended values, and a `graphics` event. The SDK doesn't change the renderer.
+* `readEnvironment()` and `resolveGraphics()` as standalone functions.
+
+### Changed
+
+* Internal code now lives in plain feature functions behind a thin facade. The public API is unchanged.
+
 ## [0.1.0] - 2026-11-01
 
 ### Added

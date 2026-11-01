@@ -1,7 +1,7 @@
 # SDK environment and settings
 
 * **Version:** 0.1.0
-* **Status:** In progress
+* **Status:** Done
 * **Phase:** P1
 * **Requirements:** SDK-007, SDK-008
 * **Depends on:** `sdk-initiation_0.0.1`
@@ -57,13 +57,13 @@ Rules:
 
 ## Acceptance criteria
 
-* [ ] AC-1: `environment.read()` returns a complete result in Chromium, Firefox and WebKit with no permission prompts.
-* [ ] AC-2: Unavailable APIs produce `'unknown'` or `false` without throwing.
-* [ ] AC-3: The tier follows the rules above.
-* [ ] AC-4: Settings survive a page reload in Chromium, Firefox and WebKit, and are separate for each game.
-* [ ] AC-5: Blocked storage, full storage and corrupted data don't throw from `get` or `set`, and `persistent` reports `false` when a write fails.
-* [ ] AC-6: Setting a preset persists it and emits `graphics` with the resolved values.
-* [ ] AC-7: Mock mode results are deterministic, and overrides apply.
+* [x] AC-1: `environment.read()` returns a complete result in Chromium, Firefox and WebKit with no permission prompts.
+* [x] AC-2: Unavailable APIs produce `'unknown'` or `false` without throwing.
+* [x] AC-3: The tier follows the rules above.
+* [x] AC-4: Settings survive a page reload in Chromium, Firefox and WebKit, and are separate for each game.
+* [x] AC-5: Blocked storage, full storage and corrupted data don't throw from `get` or `set`, and `persistent` reports `false` when a write fails.
+* [x] AC-6: Setting a preset persists it and emits `graphics` with the resolved values.
+* [x] AC-7: Mock mode results are deterministic, and overrides apply.
 
 ## Design
 
@@ -83,8 +83,8 @@ Rules:
 
 ## Tasks
 
-* [ ] Environment API and `devices` event
-* [ ] Settings API and graphics presets
+* [x] Environment API and `devices` event
+* [x] Settings API and graphics presets
 
 ## Open questions
 
