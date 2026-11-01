@@ -16,6 +16,7 @@ export const ERROR_DEFINITIONS = freeze({
   SAVE_MIGRATION_FAILED: freeze({ retryable: false }),
   REALM_NOT_ALLOWED: freeze({ retryable: false }),
   MOCK_NOT_ALLOWED: freeze({ retryable: false }),
+  PLUGIN_FAILED: freeze({ retryable: false }),
   INTERNAL: freeze({ retryable: false }),
 }) satisfies Record<string, { retryable: boolean }>;
 

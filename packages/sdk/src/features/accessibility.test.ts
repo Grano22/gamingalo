@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { startSdk, stopSdks } from '../test-helpers';
 import { createMockSdk } from '../testing';
 import { createBrowserAccessibility, parseMirrorItems } from './accessibility';
+import { createCanvasFilterLayers } from './canvas-filters';
 
 afterEach(async () => {
   vi.unstubAllGlobals();
@@ -137,7 +138,7 @@ describe('canvas filter', () => {
     const sdk = await startSdk({ gameId: 'my-game', realm: { canvas } });
 
     sdk.accessibility.setCanvasFilter('grayscale');
-    expect(canvas.style.filter).toBe('grayscale(1)');
+    expect(canvas.style.filter).toBe('blur(1px) grayscale(1)');
     expect(sdk.accessibility.getCanvasFilter()).toBe('grayscale');
 
     sdk.accessibility.setCanvasFilter('none');
@@ -161,7 +162,7 @@ describe('canvas filter', () => {
 describe('speech and preferences', () => {
   it('returns false without speech support', () => {
     vi.stubGlobal('speechSynthesis', undefined);
-    expect(createBrowserAccessibility(undefined).api.speak('hi')).toBe(false);
+    expect(createBrowserAccessibility(undefined, createCanvasFilterLayers(undefined)).api.speak('hi')).toBe(false);
   });
 
   it('replaces current speech', () => {
@@ -174,14 +175,14 @@ describe('speech and preferences', () => {
         constructor(readonly text: string) {}
       },
     );
-    expect(createBrowserAccessibility(undefined).api.speak('hi')).toBe(true);
+    expect(createBrowserAccessibility(undefined, createCanvasFilterLayers(undefined)).api.speak('hi')).toBe(true);
     expect(cancel).toHaveBeenCalledTimes(1);
     expect(speak).toHaveBeenCalledTimes(1);
   });
 
   it('gives default preferences without matchMedia', () => {
     vi.stubGlobal('matchMedia', undefined);
-    expect(createBrowserAccessibility(undefined).api.preferences()).toEqual({
+    expect(createBrowserAccessibility(undefined, createCanvasFilterLayers(undefined)).api.preferences()).toEqual({
       reducedMotion: false,
       contrast: 'no-preference',
       forcedColors: false,

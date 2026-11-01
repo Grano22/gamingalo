@@ -1,11 +1,13 @@
 import { GamingaloError } from '@gamingalo/errors';
 import type { Accessibility, AccessibilityPreferences } from './features/accessibility';
 import type { GameCache } from './features/cache';
+import type { CanvasFilterLayers } from './features/canvas-filters';
 import type { GameFiles } from './features/files';
 import type { ConnectionState } from './features/connection';
 import type { Features } from './features/discovery';
 import type { Environment, EnvironmentInfo } from './features/environment';
 import type { Network } from './features/network';
+import type { GamingaloPlugin, PluginContext } from './features/plugins';
 import { createPreferences, type PreferenceChange, type Preferences } from './features/preferences';
 import { createSaves, type SaveBackend, type Saves } from './features/saves';
 import { createSessionMemory, type SessionMemory } from './features/session';
@@ -23,6 +25,7 @@ import {
   SafeMap,
   SafeSet,
 } from './primordials';
+import type { ResolvedPlugin } from './config';
 import type { RealmInfo } from './realm';
 
 export interface SdkEventMap {
@@ -65,6 +68,8 @@ export interface GamingaloSdk {
   readonly storage: StorageInfo;
   readonly accessibility: Accessibility;
   readonly network: Network;
+  /** Returns the API of a plugin listed in `init`. Throws `FEATURE_UNAVAILABLE` for any other plugin. */
+  use<Api extends object>(plugin: GamingaloPlugin<Api>): Api;
   /** Subscribes to an event and returns a function that unsubscribes. */
   on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void;
   /** Stops the SDK. Calling it again does nothing. Every other member then throws `SDK_NOT_INITIALIZED`. */
@@ -86,6 +91,8 @@ export interface SdkParts {
   storage: StorageInfo;
   accessibility: Accessibility;
   network: Network;
+  filters: CanvasFilterLayers;
+  plugins: readonly ResolvedPlugin[];
   onShutdown: () => void;
 }
 
@@ -166,6 +173,27 @@ export function buildSdk<Extra extends object = object>(
   });
 
   const guard = <T extends object>(api: T) => guardApi(api, assertActive);
+
+  const pluginApis = new SafeMap<object, object>();
+
+  /** Newest first, so that anything added later can still rely on what it was built on. */
+  const stop = () => {
+    if (!active) return;
+    active = false;
+    const pending: Array<() => void> = [];
+    cleanups.forEach((cleanup) => void (pending[pending.length] = cleanup));
+    for (let index = pending.length - 1; index >= 0; index--) {
+      try {
+        (pending[index] as () => void)();
+      } catch (error) {
+        // One failing cleanup must not stop the rest.
+        console.error('[gamingalo] cleanup failed', error);
+      }
+    }
+    cleanups.clear();
+    handlers.clear();
+    parts.onShutdown();
+  };
 
   const features = guard<Features>({ has: (name) => parts.hasFeature(name) });
   const connectionApi = guard<Connection>({
@@ -264,17 +292,46 @@ export function buildSdk<Extra extends object = object>(
         set.delete(handler as (payload: never) => void);
       });
     },
+    use<Api extends object>(plugin: GamingaloPlugin<Api>): Api {
+      const pluginApi = pluginApis.get(plugin);
+      if (!pluginApi) {
+        throw new GamingaloError('FEATURE_UNAVAILABLE', 'This plugin was not listed in Gamingalo.init().');
+      }
+      return pluginApi as Api;
+    },
     async shutdown(): Promise<void> {
-      if (!active) return;
-      active = false;
-      cleanups.forEach((cleanup) => cleanup());
-      cleanups.clear();
-      handlers.clear();
-      parts.onShutdown();
+      stop();
     },
   };
 
   const extra = extend?.(controls);
+
+  for (let index = 0; index < parts.plugins.length; index++) {
+    const { plugin, name, setup } = parts.plugins[index] as ResolvedPlugin;
+    const context = freeze<PluginContext>({
+      gameId: parts.gameId,
+      realm: parts.realm,
+      environment,
+      preferences: guard(
+        createPreferences({
+          storageKey: `gamingalo:${parts.gameId}:plugin:${name}:preferences`,
+          store: parts.store,
+          onChange: () => {},
+        }),
+      ),
+      setCanvasFilter: (value) => parts.filters.set(`plugin:${name}`, value),
+      addCleanup: (cleanup) => void cleanups.add(cleanup),
+    });
+    try {
+      const pluginApi = reflectApply(setup, plugin, [context]) as unknown;
+      if (typeof pluginApi !== 'object' || pluginApi === null) throw new TypeError('setup must return an object');
+      pluginApis.set(plugin, guard(pluginApi));
+    } catch (cause) {
+      stop();
+      throw new GamingaloError('PLUGIN_FAILED', `The plugin "${name}" failed to start.`, { cause });
+    }
+  }
+
   const complete = createObject(null) as typeof api & Extra;
   copyMembers(complete, api);
   if (extra) copyMembers(complete, extra);

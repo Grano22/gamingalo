@@ -3,7 +3,7 @@
  * This file must never be imported by `index.ts`: the build fails if mock code reaches production.
  */
 import { GamingaloError } from '@gamingalo/errors';
-import { snapshotOwn } from './config';
+import { resolveConfig, snapshotOwn } from './config';
 import { buildSdk, type GamingaloSdk } from './facade';
 import {
   assertCanvasFilter,
@@ -15,12 +15,14 @@ import {
   type MirrorRole,
 } from './features/accessibility';
 import { createMemoryCache } from './features/cache';
+import { createCanvasFilterLayers } from './features/canvas-filters';
 import { createMemoryFiles } from './features/files';
 import { CONNECTION_STATES, type ConnectionState } from './features/connection';
 import { FEATURE_NAMES, type FeatureName } from './features/discovery';
 import type { EnvironmentInfo } from './features/environment';
 import { createSessionId, type Network, type NetworkMeasurement } from './features/network';
 import { createMemorySaveBackend } from './features/saves';
+import type { GamingaloPlugin } from './features/plugins';
 import { createMemoryStore } from './features/settings';
 import { createMockStorageInfo } from './features/storage';
 import { clone, freeze, hasOwn, SafeSet } from './primordials';
@@ -39,6 +41,8 @@ export interface MockOptions {
   environment?: Partial<EnvironmentInfo>;
   /** Values returned by `network.measure()`. */
   network?: Partial<NetworkMeasurement>;
+  /** Plugins to test. */
+  plugins?: ReadonlyArray<GamingaloPlugin<object>>;
 }
 
 /** Controls for simulating events in a test. */
@@ -48,6 +52,8 @@ export interface MockControls {
   resume(): void;
   devicesChanged(): void;
   setNetwork(values: Partial<NetworkMeasurement>): void;
+  /** The combined CSS filter that plugins have set. A mock has no canvas to apply it to. */
+  canvasFilter(): string;
   readonly accessibility: MockAccessibilityControls;
 }
 
@@ -173,7 +179,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   const own = snapshotOwn(options);
   if (!own) throw invalid('Expected an object.');
   for (const name of Object.keys(own)) {
-    if (!['gameId', 'connection', 'features', 'environment', 'network'].includes(name)) throw invalid(`Unknown option ${name}.`);
+    if (!['gameId', 'connection', 'features', 'environment', 'network', 'plugins'].includes(name)) throw invalid(`Unknown option ${name}.`);
   }
 
   const connection = own['connection'] ?? 'online';
@@ -188,6 +194,9 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   for (const name of featureList as string[]) features.add(name);
   const overrides = snapshotOwn(own['environment']) ?? {};
   const accessibility = createMockAccessibility();
+  const gameId = typeof own['gameId'] === 'string' ? own['gameId'] : 'mock-game';
+  const { plugins } = resolveConfig({ gameId, plugins: own['plugins'] });
+  const filters = createCanvasFilterLayers(undefined);
   let currentConnection = connection as ConnectionState;
   let measurement: NetworkMeasurement = freeze({
     pingMs: 20,
@@ -215,7 +224,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
 
   return buildSdk<{ mock: MockControls }>(
     {
-      gameId: typeof own['gameId'] === 'string' ? own['gameId'] : 'mock-game',
+      gameId,
       realm: freeze({ origin: 'mock', embedded: false, canvas: undefined }),
       connection: connection as ConnectionState,
       suspended: false,
@@ -228,6 +237,8 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
       storage: createMockStorageInfo(),
       accessibility: accessibility.api,
       network,
+      filters,
+      plugins,
       onShutdown: () => {},
     },
     (controls) => ({
@@ -252,6 +263,10 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
         setNetwork(values: Partial<NetworkMeasurement>) {
           controls.assertActive();
           measurement = freeze({ ...measurement, ...values });
+        },
+        canvasFilter() {
+          controls.assertActive();
+          return filters.composed();
         },
         accessibility: accessibility.controls(controls.accessibilityChanged),
       }),

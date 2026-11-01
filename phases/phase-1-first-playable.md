@@ -8,8 +8,8 @@
 |---|---|---|
 | `sdk-initiation_0.0.1` | SDK-001, SDK-009, XC-005 | In progress |
 | `sdk-hardening_0.1.0` | SDK-037, SDK-038, SDK-039 | Done |
-| `sdk-modules_0.1.0` | SDK-036, SDK-040, PLG-001 | In progress |
-| `sdk-localization_0.1.0` | SDK-019 | Not started |
+| `sdk-modules_0.1.0` | SDK-036, SDK-040, PLG-001 | Done |
+| `sdk-localization_0.1.0` | SDK-019 | In progress |
 | `sdk-connection_0.1.0` | SDK-041 | Not started |
 | `backend-core_0.1.0` | BE-001, XC-006 | In progress |
 | `identity_0.1.0` | BE-002, SDK-002, SDK-011, WEB-004, XC-008, XC-009, XC-010 | Not started |

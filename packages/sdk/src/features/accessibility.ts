@@ -1,6 +1,7 @@
 import { GamingaloError } from '@gamingalo/errors';
 import { snapshotOwn } from '../config';
 import { freeze, hasOwn, isArray, SafeMap, SafeSet } from '../primordials';
+import type { CanvasFilterLayers } from './canvas-filters';
 
 export type ContrastPreference = 'more' | 'less' | 'no-preference';
 export type CanvasFilter = 'none' | 'high-contrast' | 'grayscale';
@@ -135,12 +136,14 @@ export function watchAccessibilityPreferences(onChange: (preferences: Accessibil
 
 export interface BrowserAccessibility {
   api: Accessibility;
-  /** Removes everything the SDK added to the page, and restores the canvas. */
+  /** Removes everything the SDK added to the page. */
   dispose(): void;
 }
 
-export function createBrowserAccessibility(canvas: HTMLCanvasElement | undefined): BrowserAccessibility {
-  const originalFilter = canvas?.style.filter ?? '';
+export function createBrowserAccessibility(
+  canvas: HTMLCanvasElement | undefined,
+  filters: CanvasFilterLayers,
+): BrowserAccessibility {
   let currentFilter: CanvasFilter = 'none';
   let host: HTMLElement | undefined;
   let polite: HTMLElement | undefined;
@@ -246,9 +249,9 @@ export function createBrowserAccessibility(canvas: HTMLCanvasElement | undefined
 
     setCanvasFilter(filter) {
       assertCanvasFilter(filter);
-      if (!canvas) throw invalid('A canvas filter needs a canvas bound with realm.canvas.');
+      if (!filters.hasCanvas) throw invalid('A canvas filter needs a canvas bound with realm.canvas.');
       currentFilter = filter;
-      canvas.style.filter = filter === 'none' ? originalFilter : CANVAS_FILTERS[filter];
+      filters.set('accessibility', CANVAS_FILTERS[filter]);
     },
 
     getCanvasFilter: () => currentFilter,
@@ -277,7 +280,6 @@ export function createBrowserAccessibility(canvas: HTMLCanvasElement | undefined
       host = undefined;
       items.clear();
       elements.clear();
-      if (canvas) canvas.style.filter = originalFilter;
       if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
     },
   };

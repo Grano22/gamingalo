@@ -1,7 +1,7 @@
 # SDK modules
 
 * **Version:** 0.1.0
-* **Status:** In progress
+* **Status:** Done
 * **Phase:** P1
 * **Requirements:** SDK-036, SDK-040, PLG-001
 * **Depends on:** `sdk-hardening_0.1.0`, `sdk-device-settings_0.1.0`
@@ -52,7 +52,7 @@ Preference rules:
 
 Plugin rules:
 
-* A plugin is an object with a `name` and a `setup(context)` function, and `setup` returns the plugin's API.
+* A plugin is an object with its own `name` and `setup(context)` properties, and `setup` returns the plugin's API. Plugins are ordinary objects, so a plugin package needs only the SDK's types at runtime.
 * `sdk.use(plugin)` returns that API, frozen and guarded like any other SDK API. It stops working on shutdown.
 * Plugins receive only the context, never the facade's internal controls.
 * A plugin's preferences are stored separately from the game's and from other plugins'.
@@ -72,12 +72,12 @@ ScreenPreferences rules:
 * [x] AC-1: Definitions validate values, reject bad definitions, and ignore stored values that no longer fit.
 * [x] AC-2: `sdk.settings` holds graphics only, and `sdk.preferences` holds custom values.
 * [x] AC-3: Preferences survive a reload in Chromium, Firefox and WebKit, and changes emit `preferences`.
-* [ ] AC-4: `sdk.use` returns a frozen, guarded API, and an unregistered plugin throws `FEATURE_UNAVAILABLE`.
-* [ ] AC-5: A failing plugin rejects `init`, runs cleanups, and leaves the SDK free to start.
-* [ ] AC-6: Plugin storage is isolated, and plugin cleanups run on shutdown.
-* [ ] AC-7: Plugin filters and accessibility filters combine without overwriting each other.
-* [ ] AC-8: ScreenPreferences changes the rendered canvas in Chromium, Firefox and WebKit, and persists.
-* [ ] AC-9: Plugins aren't included in the core bundle, and work with `createMockSdk`.
+* [x] AC-4: `sdk.use` returns a frozen, guarded API, and an unregistered plugin throws `FEATURE_UNAVAILABLE`.
+* [x] AC-5: A failing plugin rejects `init`, runs cleanups, and leaves the SDK free to start.
+* [x] AC-6: Plugin storage is isolated, and plugin cleanups run on shutdown.
+* [x] AC-7: Plugin filters and accessibility filters combine without overwriting each other.
+* [x] AC-8: ScreenPreferences changes the rendered canvas in Chromium, Firefox and WebKit, and persists.
+* [x] AC-9: Plugins aren't included in the core bundle, and work with `createMockSdk`.
 
 ## Security and privacy
 
@@ -90,8 +90,8 @@ ScreenPreferences rules:
 ## Tasks
 
 * [x] Preferences API
-* [ ] Plugin system and filter layers
-* [ ] ScreenPreferences plugin
+* [x] Plugin system and filter layers
+* [x] ScreenPreferences plugin
 
 ## Open questions
 

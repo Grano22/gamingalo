@@ -3,6 +3,7 @@ import { resolveConfig, type GamingaloConfig } from './config';
 import { buildSdk, type GamingaloSdk } from './facade';
 import { createBrowserAccessibility, watchAccessibilityPreferences } from './features/accessibility';
 import { createGameCache } from './features/cache';
+import { createCanvasFilterLayers } from './features/canvas-filters';
 import { readBrowserConnection, watchBrowserConnection } from './features/connection';
 import { readEnvironment, watchDevices } from './features/environment';
 import { getBrowserFiles } from './features/files';
@@ -30,7 +31,7 @@ const nativeFetch = globalThis.fetch;
 const capturedFetch: typeof fetch = (input, init) => nativeFetch(input, init);
 
 async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
-  const { gameId, realm: realmOptions } = resolveConfig(config);
+  const { gameId, realm: realmOptions, plugins } = resolveConfig(config);
   if (running) {
     throw new GamingaloError(
       'SDK_ALREADY_INITIALIZED',
@@ -42,7 +43,8 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
   running = true;
   const saveBackend = getBrowserSaveBackend(gameId);
   const files = getBrowserFiles(gameId);
-  const accessibility = createBrowserAccessibility(realm.canvas);
+  const filters = createCanvasFilterLayers(realm.canvas);
+  const accessibility = createBrowserAccessibility(realm.canvas, filters);
 
   return buildSdk(
     {
@@ -59,6 +61,8 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       storage: createBrowserStorageInfo(),
       accessibility: accessibility.api,
       network: createNetwork(capturedFetch, createSessionId()),
+      filters,
+      plugins,
       onShutdown: () => {
         running = false;
       },
@@ -68,6 +72,7 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       controls.addCleanup(watchPageLifecycle(controls.suspend, controls.resume));
       controls.addCleanup(watchDevices(controls.devicesChanged));
       controls.addCleanup(watchAccessibilityPreferences(controls.accessibilityChanged));
+      controls.addCleanup(filters.dispose);
       controls.addCleanup(accessibility.dispose);
       return {};
     },

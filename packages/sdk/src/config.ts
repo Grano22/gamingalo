@@ -1,5 +1,6 @@
 import { GamingaloError } from '@gamingalo/errors';
 import { arrayFrom, createObject, freeze, hasOwn, isArray, matches, objectKeys } from './primordials';
+import type { GamingaloPlugin } from './features/plugins';
 import type { RealmOptions } from './realm';
 
 export interface GamingaloConfig {
@@ -7,15 +8,26 @@ export interface GamingaloConfig {
   gameId: string;
   /** Restricts where this SDK can run. See `RealmOptions`. */
   realm?: RealmOptions;
+  /** Optional modules, available through `sdk.use(plugin)`. */
+  plugins?: ReadonlyArray<GamingaloPlugin<object>>;
 }
 
 export interface ResolvedConfig {
   readonly gameId: string;
   readonly realm: RealmOptions | undefined;
+  readonly plugins: readonly ResolvedPlugin[];
+}
+
+/** The original object is kept as the key for `sdk.use`, and its fields are read once. */
+export interface ResolvedPlugin {
+  readonly plugin: object;
+  readonly name: string;
+  readonly setup: GamingaloPlugin<object>['setup'];
 }
 
 const GAME_ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,62}$/;
-const CONFIG_KEYS = freeze({ __proto__: null, gameId: true, realm: true });
+const PLUGIN_NAME_PATTERN = /^[a-z0-9@][a-z0-9@/_-]{0,127}$/;
+const CONFIG_KEYS = freeze({ __proto__: null, gameId: true, realm: true, plugins: true });
 const REALM_KEYS = freeze({ __proto__: null, origins: true, frame: true, canvas: true });
 const FRAMES = freeze({ __proto__: null, top: true, embedded: true, any: true });
 
@@ -68,6 +80,26 @@ function resolveRealmOptions(input: unknown): RealmOptions | undefined {
   return freeze(realm) as RealmOptions;
 }
 
+function resolvePlugins(input: unknown): readonly ResolvedPlugin[] {
+  if (input === undefined) return freeze([]);
+  if (!isArray(input)) throw invalid('plugins: expected a list');
+  const list = arrayFrom(input as unknown[]);
+  const resolved: ResolvedPlugin[] = [];
+  for (let index = 0; index < list.length; index++) {
+    const plugin = list[index];
+    const own = snapshotOwn(plugin);
+    if (!own) throw invalid('plugins: each plugin must be an object');
+    const { name, setup } = own;
+    if (typeof name !== 'string' || !matches(PLUGIN_NAME_PATTERN, name)) throw invalid('plugins: invalid plugin name');
+    if (typeof setup !== 'function') throw invalid(`plugins: "${name}" needs a setup function`);
+    for (let earlier = 0; earlier < index; earlier++) {
+      if ((resolved[earlier] as ResolvedPlugin).name === name) throw invalid(`plugins: "${name}" is listed twice`);
+    }
+    resolved[index] = freeze({ plugin: plugin as object, name, setup: setup as ResolvedPlugin['setup'] });
+  }
+  return freeze(resolved);
+}
+
 /**
  * Hand-written rather than using Zod, because this code must not read inherited properties
  * and Zod's parsers do. See D-22.
@@ -81,5 +113,9 @@ export function resolveConfig(input: unknown): ResolvedConfig {
   if (typeof gameId !== 'string' || !matches(GAME_ID_PATTERN, gameId)) {
     throw invalid('gameId: expected lowercase letters, digits and hyphens');
   }
-  return freeze({ gameId, realm: resolveRealmOptions(config['realm']) });
+  return freeze({
+    gameId,
+    realm: resolveRealmOptions(config['realm']),
+    plugins: resolvePlugins(config['plugins']),
+  });
 }

@@ -2,6 +2,12 @@
 
 All notable changes to `@gamingalo/errors` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-11-01
+
+### Added
+
+* `PLUGIN_FAILED` error code.
+
 ## [0.5.0] - 2026-11-01
 
 ### Added

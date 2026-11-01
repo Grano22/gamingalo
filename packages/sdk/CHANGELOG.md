@@ -2,6 +2,17 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.10.0] - 2026-11-01
+
+### Added
+
+* Plugin system: list optional modules in `init({ plugins })`, get their API with `sdk.use(plugin)`, and write your own using `GamingaloPlugin`.
+* `createMockSdk({ plugins })` and `sdk.mock.canvasFilter()` for testing plugins.
+
+### Changed
+
+* Canvas filters are layered, so plugin, accessibility and the game's own filters combine instead of overwriting each other.
+
 ## [0.9.0] - 2026-11-01
 
 ### Added
