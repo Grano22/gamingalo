@@ -29,7 +29,7 @@ The repo has no workspace, so no package can be built or tested.
 * [x] AC-1: `npm ci && npx nx run-many -t lint typecheck test build` passes from a clean checkout.
 * [x] AC-2: A second run with no changes reuses the Nx cache.
 * [ ] AC-3: CI runs the same targets on pull requests and on `main`.
-* [ ] AC-4: `infra/living_repo` is committed, and its README no longer refers to `../opentofu`. CI validates the OpenTofu roots.
+* [ ] AC-4: The `infra/living_repo` README steps work from a clean checkout, and CI validates the OpenTofu roots.
 
 ## Test plan
 

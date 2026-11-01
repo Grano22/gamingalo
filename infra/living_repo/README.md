@@ -28,7 +28,7 @@ The dev defaults use bucket `gamingalo`, lock table `gamingalo-locks`, and regio
 After bootstrap succeeds, use the remote workload root. Initialize its shared backend once, then create/select the dev workspace:
 
 ```sh
-cd ../opentofu
+cd ../living_repo
 cp environments/dev.tfvars.example environments/dev.tfvars
 tofu init -backend-config=environments/dev.backend.hcl
 tofu workspace select dev || tofu workspace new dev

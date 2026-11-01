@@ -19,7 +19,7 @@
 ## Exit criteria
 
 * [ ] Nx workspace builds, lints and tests in CI.
-* [ ] `infra/living_repo` is committed and its README steps work from a clean checkout.
+* [ ] The `infra/living_repo` README steps work from a clean checkout.
 * [ ] The threat model covers saves, paid content, scores, game code and protected assets, and states what we won't defend against.
 * [ ] D-05, D-13 and D-14 are confirmed.
 * [ ] D-08 is answered using the cost model.
