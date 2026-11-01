@@ -10,6 +10,7 @@ Web game platform: an SDK for game makers, a game wrapper, a web platform, a bac
 | `phases/` | Delivery plan. Each phase lists its specs and exit criteria. |
 | `.specs/` | One folder per spec (`<name>_<version>/spec.md`). See `.specs/README.md`. |
 | `docs/decisions.md` | Decisions, working defaults and open questions. |
+| `TODO.md` | Questions waiting for the project owner's answer. |
 | `infra/` | OpenTofu: `bootstrap` (state backend) and `living_repo` (workload). |
 | `.draft/` | Original idea notes. Not authoritative. |
 
@@ -20,7 +21,29 @@ Web game platform: an SDK for game makers, a game wrapper, a web platform, a bac
 3. Implement against the acceptance criteria and reference requirement IDs in tests and PRs.
 4. If the work changes a requirement or decision, update `features/` or `docs/decisions.md` in the same change.
 5. If a task depends on an `Open` decision, stop and ask.
-6. After each completed feature, commit using [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(sdk): add lifecycle events`.
+6. After each completed feature, update versions and changelogs as described below, then commit using [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(sdk): add lifecycle events`.
+
+## Versions and changelogs
+
+Every change to a module's shipped behavior goes in the same commit as these two updates:
+
+1. Bump `version` in the `package.json` of each changed module, following [Semantic Versioning](https://semver.org/):
+   * Bug fix: patch.
+   * New feature: minor.
+   * Breaking change: major. Before 1.0.0, use minor and mark the entry as breaking.
+2. Add a section for the new version to that module's `CHANGELOG.md`, in the [Keep a Changelog](https://keepachangelog.com/) format, with the date and what changed for its users.
+
+Tests, internal refactoring and docs alone don't need a bump.
+
+## Open questions
+
+Questions for the project owner go in `TODO.md`. Once one is answered, keep it in the file, strike it through and add the answer:
+
+```md
+* [x] ~~Which payment provider should we use?~~ **Answer:** Paddle.
+```
+
+Then apply the answer wherever it belongs, such as `docs/decisions.md`.
 
 ## Shared tech stack
 
