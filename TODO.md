@@ -12,7 +12,7 @@ Questions waiting for an answer from the project owner. See the rule in `AGENTS.
 
 * [ ] Is 15 KB gzipped the right size budget for the SDK core bundle?
 * [ ] Should the npm scope be `@gamingalo`? It hasn't been checked or registered.
-* [ ] Should mock mode stay? It was meant for working without a backend, which basic SDK use no longer needs (D-19). It still gives games test controls for connection, suspend and resume.
+* [x] ~~Should mock mode stay? It was meant for working without a backend, which basic SDK use no longer needs (D-19). It still gives games test controls for connection, suspend and resume.~~ **Answer:** Yes, but only in a test context, so game designers can test features in unit tests. It must not be active in production. (D-20)
 * [ ] Which foreign API should extended online features use first: the Gamingalo backend, or an adapter that lets game makers plug in their own?
 
 ## Manual checks

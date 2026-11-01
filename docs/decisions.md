@@ -26,4 +26,7 @@ Status meanings:
 | D-16 | Anti-automation | Default | Collect risk signals and score them on the server. Do not promise to block automation or AI. | SDK-031, BE-021 |
 | D-17 | One Time API meaning | Default | An atomic server-side claim scoped to game, profile and key. Requires a connection and is safe to retry. | SDK-017, BE-014 |
 | D-18 | Fingerprinting | Default | Use a first-party ID for stats. Any fingerprinting requires consent and legal approval, and is never exposed to games. | WRAP-005 |
+| D-20 | Mock mode | Decided | Mock mode stays, for game makers' tests only. It lives in `@gamingalo/sdk/testing`, is refused outside a test context, and can't reach production builds. | SDK-039 |
+| D-21 | SDK access | Decided | The public SDK is frozen and protected from prototype pollution. One reference exists per realm, and it can be bound to specific origins, a frame type and a canvas. | SDK-037, SDK-038 |
+| D-22 | Zod in the SDK runtime | Default | The SDK's production code doesn't use Zod, because its parsers read inherited properties, which conflicts with D-21. Zod stays the default everywhere else. | SDK-037 |
 | D-19 | SDK shape | Decided | The SDK is a plain library: a facade whose methods come from feature functions. Basic use runs entirely inside the library, with no backend or API of its own. Only extended online features call a foreign API. | All SDK requirements, BE-001 |

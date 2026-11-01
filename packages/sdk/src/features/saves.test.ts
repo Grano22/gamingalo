@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Gamingalo, isGamingaloError, type ErrorCode } from '../index';
+import { isGamingaloError, type ErrorCode } from '../index';
+import { startSdk, stopSdks } from '../test-helpers';
+import { createMockSdk } from '../testing';
 import {
   createMemorySaveBackend,
   createSaves,
@@ -27,11 +29,7 @@ async function expectCode(action: () => unknown, code: ErrorCode): Promise<void>
 
 afterEach(async () => {
   vi.unstubAllGlobals();
-  try {
-    await Gamingalo.instance().shutdown();
-  } catch {
-    // Nothing was running.
-  }
+  await stopSdks();
 });
 
 describe('saves', () => {
@@ -220,21 +218,21 @@ describe('wasEvicted', () => {
 
 describe('sdk.saves', () => {
   it('works in mock mode by default and is reported as available', async () => {
-    const sdk = await Gamingalo.init({ gameId: 'my-game', mode: 'mock' });
+    const sdk = await createMockSdk();
     expect(sdk.features.has('saves')).toBe(true);
     await sdk.saves.write('a', 1);
     expect((await sdk.saves.read('a'))?.data).toBe(1);
   });
 
   it('throws FEATURE_UNAVAILABLE when a mock excludes it', async () => {
-    const sdk = await Gamingalo.init({ gameId: 'my-game', mode: 'mock', mock: { features: [] } });
+    const sdk = await createMockSdk({ features: [] });
     expect(sdk.features.has('saves')).toBe(false);
     await expectCode(() => sdk.saves, 'FEATURE_UNAVAILABLE');
   });
 
   it('is unavailable in production without IndexedDB, with no silent memory fallback', async () => {
     vi.stubGlobal('indexedDB', undefined);
-    const sdk = await Gamingalo.init({ gameId: 'my-game' });
+    const sdk = await startSdk();
     expect(sdk.features.has('saves')).toBe(false);
     await expectCode(() => sdk.saves, 'FEATURE_UNAVAILABLE');
   });
@@ -267,7 +265,7 @@ describe('storage info', () => {
   });
 
   it('is available on the facade', async () => {
-    const sdk = await Gamingalo.init({ gameId: 'my-game', mode: 'mock' });
+    const sdk = await createMockSdk();
     expect(await sdk.storage.requestPersistence()).toBe(true);
     expect(await sdk.storage.isPersistent()).toBe(true);
   });

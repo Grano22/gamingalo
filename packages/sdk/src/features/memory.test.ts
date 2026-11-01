@@ -1,16 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Gamingalo } from '../index';
+import { startSdk, stopSdks } from '../test-helpers';
+import { createMockSdk } from '../testing';
 import { createBrowserCache, createGameCache, createMemoryCache } from './cache';
 import { createSessionMemory } from './session';
 import { toStorageError } from './storage-errors';
 
 afterEach(async () => {
   vi.unstubAllGlobals();
-  try {
-    await Gamingalo.instance().shutdown();
-  } catch {
-    // Nothing was running.
-  }
+  await stopSdks();
 });
 
 describe('session memory', () => {
@@ -33,11 +30,11 @@ describe('session memory', () => {
   });
 
   it('is empty after the SDK restarts', async () => {
-    const sdk = await Gamingalo.init({ gameId: 'my-game', mode: 'mock' });
+    const sdk = await startSdk();
     sdk.session.set('a', 1);
     await sdk.shutdown();
 
-    const restarted = await Gamingalo.init({ gameId: 'my-game', mode: 'mock' });
+    const restarted = await startSdk();
     expect(restarted.session.has('a')).toBe(false);
   });
 });
@@ -102,7 +99,7 @@ describe('browser cache', () => {
   });
 
   it('uses memory in mock mode', async () => {
-    const sdk = await Gamingalo.init({ gameId: 'my-game', mode: 'mock' });
+    const sdk = await createMockSdk();
     expect(sdk.cache.persistent).toBe(false);
   });
 });

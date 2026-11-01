@@ -10,6 +10,9 @@ Core library for game makers: a single public facade whose methods come from pla
 | SDK-002 | Auth bridge to the platform using scoped game tokens, never platform session tokens | Proposed | P1 |
 | SDK-009 | Consistent error model and defined offline behavior for every API | Proposed | P1 |
 | SDK-034 | Opt-in SDK auto-update through a separately signed loader | Original | P2 |
+| SDK-037 | Frozen public surface with no prototype, protected from prototype pollution and from overriding after load | Proposed | P1 |
+| SDK-038 | One reference per realm, with no global or lookup, optionally bound to origins, a frame type and a canvas | Proposed | P1 |
+| SDK-039 | Mock mode for game makers' tests only, in a separate entry point that can't reach production | Proposed | P1 |
 
 ## Game memory and sync
 

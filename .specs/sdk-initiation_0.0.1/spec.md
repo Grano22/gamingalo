@@ -34,7 +34,6 @@ Public API:
 ```ts
 const sdk = await Gamingalo.init({ gameId: 'my-game' });
 
-Gamingalo.instance();                // the running instance, or throws
 sdk.features.has('saves');           // boolean
 sdk.connection.state;                // 'online' | 'offline' | 'degraded'
 const off = sdk.on('suspend', handler); // tab hidden or page being frozen
@@ -43,23 +42,20 @@ sdk.on('connection', (state) => {});
 
 await sdk.shutdown();
 
-// Mock mode: no backend, and state is controlled by the test.
-const mocked = await Gamingalo.init({
-  gameId: 'my-game',
-  mode: 'mock',
-  mock: { connection: 'offline', features: ['saves'] },
-});
-mocked.mock?.setConnection('online');
-mocked.mock?.suspend();
-mocked.mock?.resume();
+// Mock mode, for tests only (see sdk-hardening_0.1.0).
+import { createMockSdk } from '@gamingalo/sdk/testing';
+const mocked = await createMockSdk({ connection: 'offline', features: ['saves'] });
+mocked.mock.setConnection('online');
+mocked.mock.suspend();
+mocked.mock.resume();
 ```
 
 Rules:
 
-* `init` is safe to call repeatedly and returns the same instance for the same configuration. A different configuration rejects with `SDK_ALREADY_INITIALIZED`.
+* `init` gives out one reference per realm. Calling it again while the SDK is running rejects with `SDK_ALREADY_INITIALIZED` (changed by `sdk-hardening_0.1.0`).
 * An invalid configuration rejects with `INVALID_CONFIG` and leaves nothing running.
 * `init` never fails only because the player is offline. The SDK starts in `offline` state.
-* `Gamingalo.instance()` throws `SDK_NOT_INITIALIZED` when nothing is running. After `shutdown`, every member of the instance also throws it, except `shutdown`, which is safe to repeat.
+* After `shutdown`, every member of the reference throws `SDK_NOT_INITIALIZED`, except `shutdown`, which is safe to repeat.
 * Failures use `GamingaloError`, which has a stable `code`, a `retryable` flag and a developer-facing `message`.
 * A game's event handler that throws is logged and doesn't affect other handlers.
 * A game started in a hidden tab receives `resume` when first shown, with no `suspend` before it.
@@ -81,7 +77,7 @@ Rules:
 
 * The SDK is a plain library (D-19). Plain feature functions live in `src/features/*`, and `src/facade.ts` exposes them as methods.
 * Lifecycle events are based on the Page Visibility and Page Lifecycle APIs where available.
-* The configuration is validated with `zod/mini`, which keeps the bundle small. Zod and `@gamingalo/errors` are bundled, so the package has no runtime dependencies.
+* The configuration is validated with own-property checks (D-22). `@gamingalo/errors` is bundled, so the package has no runtime dependencies.
 
 ## Security and privacy
 
@@ -106,5 +102,5 @@ Rules:
 
 ## Open questions
 
-* Confirm the 15 KB budget. The bundle is currently about 8 KB, mostly configuration validation.
+* Confirm the 15 KB budget. The production bundle is currently about 8 KB.
 * Should the npm scope be `@gamingalo`? Registering it hasn't been checked or done.

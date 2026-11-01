@@ -53,7 +53,7 @@ Then apply the answer wherever it belongs, such as `docs/decisions.md`.
 * Unit and functional tests: Vitest
 * Real-browser end-to-end tests: Playwright
 * Schema validation:
-  * Zod is the source of truth for internal structures.
+  * Zod is the source of truth for internal structures. Exception: the SDK's production code uses own-property checks instead (D-22).
   * JSON Schema for external files such as `gamingalo.json` is generated from Zod.
 * Infrastructure: OpenTofu on AWS
 
@@ -61,7 +61,7 @@ Then apply the answer wherever it belongs, such as `docs/decisions.md`.
 
 | Component | Stack |
 |---|---|
-| SDK | Plain TypeScript library with no framework dependency and no backend of its own. `src/features/*` holds plain feature functions, and `src/facade.ts` only exposes them as methods. Only extended online features call a foreign API (D-19). |
+| SDK | Plain TypeScript library with no framework dependency and no backend of its own. `src/features/*` holds plain feature functions, and `src/facade.ts` only exposes them as methods. Only extended online features call a foreign API (D-19). Entry points: `src/index.ts` (production) and `src/testing.ts` (tests). |
 | Game Wrapper | Core SDK plus engine and framework adapters |
 | Web Platform | Angular, Vertical Slice Architecture, Testing Library, PrimeNG, Tailwind, Lucide, NgRx Signals |
 | Backend | See D-05 in `docs/decisions.md` |
@@ -75,4 +75,6 @@ Then apply the answer wherever it belongs, such as `docs/decisions.md`.
 * Third-party games run on isolated origins and never receive platform session tokens.
 * Never expose raw IP addresses or fingerprints to game code.
 * Protection features must not block assistive technology.
+* The SDK's public surface stays frozen, with no prototype and no globals. There is one reference per realm, with no way to look it up. Facade and feature code must not read inherited properties, and uses `src/primordials.ts` instead of global built-ins for anything that touches SDK state.
+* Mock code lives only behind `@gamingalo/sdk/testing`, and must never reach the production entry point.
 * Never commit credentials, state files or real `.tfvars` files.

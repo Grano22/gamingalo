@@ -1,11 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import type { Gamingalo as GamingaloApi } from '../src/index';
+import type { GamingaloEntry, GamingaloSdk } from '../src/index';
 
 declare global {
   interface Window {
-    Gamingalo: typeof GamingaloApi;
+    Gamingalo: GamingaloEntry;
     ready: boolean;
     sdkEvents: string[];
+    heldSdk: GamingaloSdk;
   }
 }
 
@@ -36,6 +37,7 @@ test('AC-3: starts offline and reports connection changes', async ({ page, conte
 
   const initial = await page.evaluate(async () => {
     const sdk = await window.Gamingalo.init({ gameId: 'e2e-game' });
+    window.heldSdk = sdk;
     window.sdkEvents = [];
     sdk.on('connection', (state) => window.sdkEvents.push(state));
     return sdk.connection.state;
@@ -44,7 +46,7 @@ test('AC-3: starts offline and reports connection changes', async ({ page, conte
 
   await context.setOffline(false);
   await page.waitForFunction(() => window.sdkEvents.includes('online'));
-  expect(await page.evaluate(() => window.Gamingalo.instance().connection.state)).toBe('online');
+  expect(await page.evaluate(() => window.heldSdk.connection.state)).toBe('online');
 });
 
 test('AC-4: suspend and resume follow page visibility', async ({ page }) => {
@@ -245,26 +247,4 @@ test('storage: reports usage and handles persistence requests', async ({ page })
   expect([true, false, 'pending']).toContain(result.granted);
   expect(typeof result.persistent).toBe('boolean');
   if (result.estimate !== 'unknown') expect(result.estimate.quotaBytes).toBeGreaterThan(0);
-});
-
-test('AC-7: mock mode makes no network requests', async ({ page }) => {
-  await open(page);
-  const requests: string[] = [];
-  page.on('request', (request) => requests.push(request.url()));
-
-  await page.evaluate(async () => {
-    const sdk = await window.Gamingalo.init({
-      gameId: 'e2e-game',
-      mode: 'mock',
-      mock: { features: ['saves'] },
-    });
-    sdk.mock?.setConnection('offline');
-    sdk.mock?.suspend();
-    sdk.mock?.resume();
-    sdk.features.has('saves');
-    await sdk.shutdown();
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  });
-
-  expect(requests).toEqual([]);
 });

@@ -34,24 +34,6 @@ export interface Environment {
   read(): Promise<EnvironmentInfo>;
 }
 
-export const MOCK_ENVIRONMENT: EnvironmentInfo = {
-  browser: { name: 'chrome', version: '1' },
-  platform: { os: 'mock', mobile: false, installedPwa: false },
-  hardware: { cpuCores: 8, memoryGb: 8 },
-  graphics: { webgpu: true, webgl2: true, adapter: 'unknown' },
-  display: {
-    width: 1920,
-    height: 1080,
-    pixelRatio: 1,
-    colorDepth: 24,
-    hdr: false,
-    multipleDisplays: false,
-    touch: false,
-  },
-  devices: { gamepads: 0, microphones: 0, cameras: 0, speakers: 0 },
-  tier: 'high',
-};
-
 export function computeTier(
   cpuCores: number | Unknown,
   memoryGb: number | Unknown,
@@ -154,7 +136,7 @@ async function readDevices(): Promise<EnvironmentInfo['devices']> {
   return devices;
 }
 
-export async function readEnvironment(): Promise<EnvironmentInfo> {
+export const readEnvironment = Object.freeze(async function readEnvironment(): Promise<EnvironmentInfo> {
   const nav = typeof navigator === 'undefined' ? undefined : navigator;
   const extras = nav as (Navigator & NavigatorExtras) | undefined;
   const display = typeof screen === 'undefined' ? undefined : screen;
@@ -186,7 +168,7 @@ export async function readEnvironment(): Promise<EnvironmentInfo> {
     devices: await readDevices(),
     tier: computeTier(cpuCores, memoryGb, graphics.webgpu, graphics.webgl2),
   };
-}
+});
 
 /** Calls back when a gamepad or media device is added or removed. Returns a function that stops watching. */
 export function watchDevices(onChange: () => void): () => void {

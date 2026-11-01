@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Gamingalo, isGamingaloError } from '../index';
+import { isGamingaloError } from '../index';
+import { stopSdks } from '../test-helpers';
+import { createMockSdk } from '../testing';
 import {
   createMemoryStore,
   createSettings,
@@ -25,11 +27,7 @@ function expectInvalid(action: () => unknown): void {
 
 afterEach(async () => {
   vi.unstubAllGlobals();
-  try {
-    await Gamingalo.instance().shutdown();
-  } catch {
-    // Nothing was running.
-  }
+  await stopSdks();
 });
 
 describe('custom settings', () => {
@@ -186,7 +184,7 @@ describe('graphics', () => {
 
 describe('sdk.settings', () => {
   it('uses the environment tier and emits graphics', async () => {
-    const sdk = await Gamingalo.init({ gameId: 'my-game', mode: 'mock', mock: { environment: { tier: 'low' } } });
+    const sdk = await createMockSdk({ environment: { tier: 'low' } });
     const handler = vi.fn();
     sdk.on('graphics', handler);
 
@@ -197,7 +195,7 @@ describe('sdk.settings', () => {
   });
 
   it('does not touch browser storage in mock mode', async () => {
-    const sdk = await Gamingalo.init({ gameId: 'my-game', mode: 'mock' });
+    const sdk = await createMockSdk();
     const spy = vi.spyOn(Storage.prototype, 'setItem');
     sdk.settings.set('volume', 1);
     expect(spy).not.toHaveBeenCalled();
@@ -205,7 +203,7 @@ describe('sdk.settings', () => {
   });
 
   it('throws after shutdown', async () => {
-    const sdk = await Gamingalo.init({ gameId: 'my-game', mode: 'mock' });
+    const sdk = await createMockSdk();
     const settings = sdk.settings;
     await sdk.shutdown();
     expect(() => settings.get('volume')).toThrow();

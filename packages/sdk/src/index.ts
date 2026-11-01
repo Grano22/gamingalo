@@ -1,13 +1,7 @@
+// Production entry point. This must never import './testing': the build fails if mock code reaches it.
 export { GamingaloError, isGamingaloError, type ErrorCode } from '@gamingalo/errors';
-export type { GamingaloConfig, GamingaloMode, MockOptions } from './config';
-export {
-  Gamingalo,
-  type Connection,
-  type GamingaloSdk,
-  type MockControls,
-  type SdkEventHandler,
-  type SdkEventMap,
-} from './facade';
+export type { GamingaloConfig } from './config';
+export type { Connection, GamingaloSdk, SdkEventHandler, SdkEventMap } from './facade';
 export type { CacheData, GameCache } from './features/cache';
 export type { ConnectionState } from './features/connection';
 export type { FeatureName, Features } from './features/discovery';
@@ -20,7 +14,6 @@ export {
 } from './features/environment';
 export type { SaveInfo, SaveRecord, SaveSchema, Saves } from './features/saves';
 export type { SessionMemory } from './features/session';
-export type { StorageEstimate, StorageInfo } from './features/storage';
 export {
   resolveGraphics,
   type GraphicsPreset,
@@ -29,3 +22,6 @@ export {
   type QualityLevel,
   type Settings,
 } from './features/settings';
+export type { StorageEstimate, StorageInfo } from './features/storage';
+export { Gamingalo, type GamingaloEntry } from './gamingalo';
+export type { RealmFrame, RealmInfo, RealmOptions } from './realm';

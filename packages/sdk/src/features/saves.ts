@@ -1,4 +1,5 @@
 import { GamingaloError } from '@gamingalo/errors';
+import { hasOwn } from '../primordials';
 import type { KeyValueStore } from './settings';
 import { toStorageError } from './storage-errors';
 
@@ -93,11 +94,12 @@ export async function encodeBlobs(value: unknown, seen = new Map<object, unknown
     seen.set(value, copy);
     for (const [key, item] of Object.entries(value)) {
       Object.defineProperty(copy, key, {
+        __proto__: null,
         value: await encodeBlobs(item, seen),
         enumerable: true,
         writable: true,
         configurable: true,
-      });
+      } as PropertyDescriptor);
     }
     return copy;
   }
@@ -118,8 +120,10 @@ export function decodeBlobs(value: unknown, seen = new Map<object, unknown>()): 
   }
   if (!isPlainObject(value)) return value;
 
-  if (value[BLOB_TAG] === true) {
-    const { type, bytes, file } = value as unknown as EncodedBlob;
+  // Own properties only, so a polluted prototype can't make plain objects look like encoded Blobs.
+  if (hasOwn(value, BLOB_TAG) && value[BLOB_TAG] === true) {
+    const { type, bytes } = value as unknown as EncodedBlob;
+    const file = hasOwn(value, 'file') ? (value as unknown as EncodedBlob).file : undefined;
     const blob = file
       ? new File([bytes], file.name, { type, lastModified: file.lastModified })
       : new Blob([bytes], { type });
@@ -129,11 +133,12 @@ export function decodeBlobs(value: unknown, seen = new Map<object, unknown>()): 
   seen.set(value, value);
   for (const key of Object.keys(value)) {
     Object.defineProperty(value, key, {
+      __proto__: null,
       value: decodeBlobs(value[key], seen),
       enumerable: true,
       writable: true,
       configurable: true,
-    });
+    } as PropertyDescriptor);
   }
   return value;
 }
@@ -225,7 +230,8 @@ export interface SavesOptions {
 }
 
 export function createSaves(options: SavesOptions): Saves {
-  const { backend, markers, now = Date.now } = options;
+  const { backend, markers } = options;
+  const now = hasOwn(options, 'now') && options.now ? options.now : Date.now;
   const markerKey = `gamingalo:${options.gameId}:saves-exist`;
   let schema: Required<SaveSchema> = { version: 1, migrations: {} };
 
@@ -262,8 +268,9 @@ export function createSaves(options: SavesOptions): Saves {
   const migrate = (record: SaveRecord): SaveRecord => {
     let data = record.data;
     for (let version = record.version; version < schema.version; version++) {
-      const step = schema.migrations[version];
-      if (!step) {
+      // Own properties only, so a polluted prototype can't supply a migration.
+      const step = hasOwn(schema.migrations, version) ? schema.migrations[version] : undefined;
+      if (typeof step !== 'function') {
         throw new GamingaloError('SAVE_MIGRATION_FAILED', `No migration from save version ${version}.`);
       }
       try {
@@ -277,10 +284,11 @@ export function createSaves(options: SavesOptions): Saves {
 
   return {
     configure(next) {
-      if (!Number.isInteger(next?.version) || next.version < 1) {
+      const version = next && hasOwn(next, 'version') ? next.version : undefined;
+      if (typeof version !== 'number' || !Number.isInteger(version) || version < 1) {
         throw new GamingaloError('INVALID_ARGUMENT', 'The save version must be a positive whole number.');
       }
-      schema = { version: next.version, migrations: next.migrations ?? {} };
+      schema = { version, migrations: hasOwn(next, 'migrations') ? (next.migrations ?? {}) : {} };
     },
 
     async write(slot, data) {

@@ -1,26 +1,25 @@
 import { GamingaloError } from '@gamingalo/errors';
-import type { GamingaloConfig, GamingaloMode, ResolvedConfig } from './config';
-import { resolveConfig } from './config';
-import { readBrowserConnection, watchBrowserConnection, type ConnectionState } from './features/connection';
-import { createGameCache, createMemoryCache, type GameCache } from './features/cache';
+import type { GameCache } from './features/cache';
+import type { ConnectionState } from './features/connection';
 import type { Features } from './features/discovery';
-import { MOCK_ENVIRONMENT, readEnvironment, watchDevices, type Environment } from './features/environment';
-import { isPageHidden, watchPageLifecycle } from './features/lifecycle';
-import {
-  createMemorySaveBackend,
-  createSaves,
-  getBrowserSaveBackend,
-  type Saves,
-} from './features/saves';
+import type { Environment, EnvironmentInfo } from './features/environment';
+import { createSaves, type SaveBackend, type Saves } from './features/saves';
 import { createSessionMemory, type SessionMemory } from './features/session';
-import { createBrowserStorageInfo, createMockStorageInfo, type StorageInfo } from './features/storage';
+import { createSettings, type GraphicsSettings, type KeyValueStore, type Settings } from './features/settings';
+import type { StorageInfo } from './features/storage';
 import {
-  createMemoryStore,
-  createSettings,
-  getBrowserStore,
-  type GraphicsSettings,
-  type Settings,
-} from './features/settings';
+  createObject,
+  defineProperty,
+  freeze,
+  guardApi,
+  hasOwn,
+  ownDescriptor,
+  ownKeys,
+  reflectApply,
+  SafeMap,
+  SafeSet,
+} from './primordials';
+import type { RealmInfo } from './realm';
 
 export interface SdkEventMap {
   suspend: undefined;
@@ -38,17 +37,10 @@ export interface Connection {
   readonly state: ConnectionState;
 }
 
-/** Test controls, available only in mock mode. */
-export interface MockControls {
-  setConnection(state: ConnectionState): void;
-  suspend(): void;
-  resume(): void;
-  devicesChanged(): void;
-}
-
+/** The public SDK reference. It and every feature API are frozen, with no prototype. */
 export interface GamingaloSdk {
   readonly gameId: string;
-  readonly mode: GamingaloMode;
+  readonly realm: RealmInfo;
   readonly features: Features;
   readonly connection: Connection;
   readonly environment: Environment;
@@ -58,266 +50,190 @@ export interface GamingaloSdk {
   /** Throws `FEATURE_UNAVAILABLE` when `features.has('saves')` is `false`. */
   readonly saves: Saves;
   readonly storage: StorageInfo;
-  /** `undefined` unless `mode` is `mock`. */
-  readonly mock: MockControls | undefined;
   /** Subscribes to an event and returns a function that unsubscribes. */
   on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void;
   /** Stops the SDK. Calling it again does nothing. Every other member then throws `SDK_NOT_INITIALIZED`. */
   shutdown(): Promise<void>;
 }
 
+/** What an entry point supplies. The facade doesn't know whether it's running for real or in a test. */
+export interface SdkParts {
+  gameId: string;
+  realm: RealmInfo;
+  connection: ConnectionState;
+  suspended: boolean;
+  hasFeature: (name: string) => boolean;
+  readEnvironment: () => Promise<EnvironmentInfo>;
+  store: KeyValueStore | undefined;
+  cache: GameCache;
+  saveBackend: SaveBackend | undefined;
+  storage: StorageInfo;
+  onShutdown: () => void;
+}
+
+/** Controls for the entry point that built the SDK. Never given to game code directly. */
+export interface SdkControls {
+  setConnection(state: ConnectionState): void;
+  suspend(): void;
+  resume(): void;
+  devicesChanged(): void;
+  addCleanup(cleanup: () => void): void;
+  assertActive(): void;
+}
+
+const EVENT_NAMES = freeze({
+  __proto__: null,
+  suspend: true,
+  resume: true,
+  connection: true,
+  devices: true,
+  graphics: true,
+});
+
 /**
- * The facade only connects plain feature functions from `features/` and holds
- * per-session state. Feature logic belongs in the feature modules.
+ * Connects plain feature functions into one frozen reference. All state lives in this closure,
+ * so there is no class, prototype or property that a script could reach or replace.
+ * `extend` lets an entry point add members before the reference is frozen.
  */
-class Facade implements GamingaloSdk {
-  readonly #config: ResolvedConfig;
-  readonly #onShutdown: () => void;
-  readonly #handlers = new Map<keyof SdkEventMap, Set<(payload: never) => void>>();
-  readonly #stopWatching: Array<() => void> = [];
-  #active = true;
-  #connection: ConnectionState;
-  #suspended: boolean;
+export function buildSdk<Extra extends object = object>(
+  parts: SdkParts,
+  extend?: (controls: SdkControls) => Extra,
+): GamingaloSdk & Extra {
+  const handlers = new SafeMap<keyof SdkEventMap, Set<(payload: never) => void>>();
+  const cleanups = new SafeSet<() => void>();
+  let active = true;
+  let connection = parts.connection;
+  let suspended = parts.suspended;
 
-  readonly #api: Pick<
-    GamingaloSdk,
-    'features' | 'connection' | 'environment' | 'settings' | 'session' | 'cache' | 'storage' | 'mock'
-  >;
-  readonly #saves: Saves | undefined;
-
-  constructor(config: ResolvedConfig, onShutdown: () => void) {
-    this.#config = config;
-    this.#onShutdown = onShutdown;
-
-    const mocked = config.mode === 'mock';
-    // Browser state is ignored in mock mode so that tests stay deterministic.
-    this.#connection = mocked ? config.mock.connection : readBrowserConnection();
-    this.#suspended = mocked ? false : isPageHidden();
-
-    if (!mocked) {
-      this.#stopWatching.push(
-        watchBrowserConnection((state) => this.#setConnection(state)),
-        watchPageLifecycle(
-          () => this.#suspend(),
-          () => this.#resume(),
-        ),
-        watchDevices(() => this.#emit('devices', undefined)),
-      );
-    }
-
-    const setConnection = (state: ConnectionState) => this.#setConnection(state);
-    const getConnection = () => this.#connection;
-    const read = async () =>
-      mocked ? structuredClone({ ...MOCK_ENVIRONMENT, ...config.mock.environment }) : readEnvironment();
-
-    // Saves never fall back to memory in production, because the player would lose progress.
-    const saveBackend = mocked
-      ? config.mock.features.includes('saves')
-        ? createMemorySaveBackend()
-        : undefined
-      : getBrowserSaveBackend(config.gameId);
-    if (saveBackend) this.#stopWatching.push(() => saveBackend.close());
-    const store = mocked ? createMemoryStore() : getBrowserStore();
-    this.#saves =
-      saveBackend && this.#guard(createSaves({ gameId: config.gameId, backend: saveBackend, markers: store }));
-
-    this.#api = {
-      features: this.#guard<Features>({
-        has: (name) => {
-          if (name === 'saves') return !!saveBackend;
-          return mocked && (config.mock.features as string[]).includes(name);
-        },
-      }),
-      connection: this.#guard<Connection>({
-        get state() {
-          return getConnection();
-        },
-      }),
-      environment: this.#guard<Environment>({ read }),
-      settings: this.#guard<Settings>(
-        createSettings({
-          gameId: config.gameId,
-          store,
-          readTier: async () => (await read()).tier,
-          onGraphicsChange: (graphics) => this.#emit('graphics', graphics),
-        }),
-      ),
-      session: this.#guard(createSessionMemory()),
-      cache: this.#guard(mocked ? createMemoryCache() : createGameCache(config.gameId)),
-      storage: this.#guard(mocked ? createMockStorageInfo() : createBrowserStorageInfo()),
-      mock: mocked
-        ? this.#guard<MockControls>({
-            setConnection,
-            suspend: () => this.#suspend(),
-            resume: () => this.#resume(),
-            devicesChanged: () => this.#emit('devices', undefined),
-          })
-        : undefined,
-    };
-  }
-
-  get gameId(): string {
-    this.#assertActive();
-    return this.#config.gameId;
-  }
-
-  get mode(): GamingaloMode {
-    this.#assertActive();
-    return this.#config.mode;
-  }
-
-  get features(): Features {
-    this.#assertActive();
-    return this.#api.features;
-  }
-
-  get connection(): Connection {
-    this.#assertActive();
-    return this.#api.connection;
-  }
-
-  get environment(): Environment {
-    this.#assertActive();
-    return this.#api.environment;
-  }
-
-  get settings(): Settings {
-    this.#assertActive();
-    return this.#api.settings;
-  }
-
-  get session(): SessionMemory {
-    this.#assertActive();
-    return this.#api.session;
-  }
-
-  get cache(): GameCache {
-    this.#assertActive();
-    return this.#api.cache;
-  }
-
-  get saves(): Saves {
-    this.#assertActive();
-    if (!this.#saves) {
-      throw new GamingaloError('FEATURE_UNAVAILABLE', 'Saves need IndexedDB, which this browser or mock does not provide.');
-    }
-    return this.#saves;
-  }
-
-  get storage(): StorageInfo {
-    this.#assertActive();
-    return this.#api.storage;
-  }
-
-  get mock(): MockControls | undefined {
-    this.#assertActive();
-    return this.#api.mock;
-  }
-
-  on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void {
-    this.#assertActive();
-    let handlers = this.#handlers.get(event);
-    if (!handlers) {
-      handlers = new Set();
-      this.#handlers.set(event, handlers);
-    }
-    const registered = handlers;
-    registered.add(handler as (payload: never) => void);
-    return () => {
-      registered.delete(handler as (payload: never) => void);
-    };
-  }
-
-  async shutdown(): Promise<void> {
-    if (!this.#active) return;
-    this.#active = false;
-    this.#stopWatching.forEach((stop) => stop());
-    this.#handlers.clear();
-    this.#onShutdown();
-  }
-
-  /** Makes a feature API throw `SDK_NOT_INITIALIZED` once the SDK has been shut down. */
-  #guard<T extends object>(api: T): T {
-    return new Proxy(api, {
-      get: (target, key) => {
-        this.#assertActive();
-        const value: unknown = Reflect.get(target, key);
-        if (typeof value !== 'function') return value;
-        return (...args: unknown[]) => {
-          this.#assertActive();
-          return value.apply(target, args);
-        };
-      },
-    });
-  }
-
-  #assertActive(): void {
-    if (!this.#active) {
+  const assertActive = () => {
+    if (!active) {
       throw new GamingaloError('SDK_NOT_INITIALIZED', 'The SDK has been shut down. Call Gamingalo.init() again.');
     }
-  }
+  };
 
-  #setConnection(state: ConnectionState): void {
-    if (state === this.#connection) return;
-    this.#connection = state;
-    this.#emit('connection', state);
-  }
-
-  #suspend(): void {
-    if (this.#suspended) return;
-    this.#suspended = true;
-    this.#emit('suspend', undefined);
-  }
-
-  #resume(): void {
-    if (!this.#suspended) return;
-    this.#suspended = false;
-    this.#emit('resume', undefined);
-  }
-
-  #emit<E extends keyof SdkEventMap>(event: E, payload: SdkEventMap[E]): void {
-    for (const handler of [...(this.#handlers.get(event) ?? [])]) {
+  const emit = <E extends keyof SdkEventMap>(event: E, payload: SdkEventMap[E]) => {
+    handlers.get(event)?.forEach((handler) => {
       try {
-        (handler as SdkEventHandler<E>)(payload);
+        reflectApply(handler as (payload: unknown) => void, undefined, [payload]);
       } catch (error) {
         // A bug in one game handler must not stop the others or break the SDK.
         console.error(`[gamingalo] "${event}" handler failed`, error);
       }
-    }
-  }
+    });
+  };
+
+  const controls: SdkControls = freeze<SdkControls>({
+    setConnection: (state) => {
+      if (state === connection) return;
+      connection = state;
+      emit('connection', state);
+    },
+    suspend: () => {
+      if (suspended) return;
+      suspended = true;
+      emit('suspend', undefined);
+    },
+    resume: () => {
+      if (!suspended) return;
+      suspended = false;
+      emit('resume', undefined);
+    },
+    devicesChanged: () => emit('devices', undefined),
+    addCleanup: (cleanup) => void cleanups.add(cleanup),
+    assertActive,
+  });
+
+  const guard = <T extends object>(api: T) => guardApi(api, assertActive);
+
+  const features = guard<Features>({ has: (name) => parts.hasFeature(name) });
+  const connectionApi = guard<Connection>({
+    get state() {
+      return connection;
+    },
+  });
+  const environment = guard<Environment>({ read: () => parts.readEnvironment() });
+  const settings = guard(
+    createSettings({
+      gameId: parts.gameId,
+      store: parts.store,
+      readTier: async () => (await parts.readEnvironment()).tier,
+      onGraphicsChange: (graphics) => emit('graphics', graphics),
+    }),
+  );
+  const session = guard(createSessionMemory());
+  const cache = guard(parts.cache);
+  const storage = guard(parts.storage);
+  const { saveBackend } = parts;
+  const saves =
+    saveBackend && guard(createSaves({ gameId: parts.gameId, backend: saveBackend, markers: parts.store }));
+  if (saveBackend) cleanups.add(() => saveBackend.close());
+
+  const api = {
+    get gameId() {
+      return parts.gameId;
+    },
+    get realm() {
+      return parts.realm;
+    },
+    get features() {
+      return features;
+    },
+    get connection() {
+      return connectionApi;
+    },
+    get environment() {
+      return environment;
+    },
+    get settings() {
+      return settings;
+    },
+    get session() {
+      return session;
+    },
+    get cache() {
+      return cache;
+    },
+    get saves() {
+      if (!saves) {
+        throw new GamingaloError('FEATURE_UNAVAILABLE', 'Saves need IndexedDB, which this environment does not provide.');
+      }
+      return saves;
+    },
+    get storage() {
+      return storage;
+    },
+    on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void {
+      if (!hasOwn(EVENT_NAMES, event) || typeof handler !== 'function') {
+        throw new GamingaloError('INVALID_ARGUMENT', 'on() needs a known event name and a handler function.');
+      }
+      let registered = handlers.get(event);
+      if (!registered) {
+        registered = new SafeSet();
+        handlers.set(event, registered);
+      }
+      const set = registered;
+      set.add(handler as (payload: never) => void);
+      return freeze(() => {
+        set.delete(handler as (payload: never) => void);
+      });
+    },
+    async shutdown(): Promise<void> {
+      if (!active) return;
+      active = false;
+      cleanups.forEach((cleanup) => cleanup());
+      cleanups.clear();
+      handlers.clear();
+      parts.onShutdown();
+    },
+  };
+
+  const extra = extend?.(controls);
+  const complete = createObject(null) as typeof api & Extra;
+  copyMembers(complete, api);
+  if (extra) copyMembers(complete, extra);
+  return guardApi(complete, assertActive, 'shutdown');
 }
 
-let current: { key: string; sdk: Facade } | undefined;
-
-export const Gamingalo = {
-  /**
-   * Starts the SDK. Calling it again with the same configuration returns the same
-   * instance. It does not fail because the player is offline.
-   */
-  async init(config: GamingaloConfig): Promise<GamingaloSdk> {
-    const resolved = resolveConfig(config);
-    const key = JSON.stringify(resolved);
-
-    if (current) {
-      if (current.key === key) return current.sdk;
-      throw new GamingaloError(
-        'SDK_ALREADY_INITIALIZED',
-        'The SDK is already running with a different configuration. Call shutdown() first.',
-      );
-    }
-
-    const sdk = new Facade(resolved, () => {
-      current = undefined;
-    });
-    current = { key, sdk };
-    return sdk;
-  },
-
-  /** Returns the running instance, or throws `SDK_NOT_INITIALIZED`. */
-  instance(): GamingaloSdk {
-    if (!current) {
-      throw new GamingaloError('SDK_NOT_INITIALIZED', 'Call Gamingalo.init() before using the SDK.');
-    }
-    return current.sdk;
-  },
-};
+function copyMembers(target: object, source: object): void {
+  for (const key of ownKeys(source)) defineProperty(target, key, ownDescriptor(source, key));
+}

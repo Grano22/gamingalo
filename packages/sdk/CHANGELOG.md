@@ -2,6 +2,29 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-11-01
+
+### Added
+
+* `realm` option on `init`: restrict the SDK to specific origins, a frame type and a canvas from the same realm. A mismatch rejects with `REALM_NOT_ALLOWED`.
+* `sdk.realm` reports the origin, whether the game is embedded, and the bound canvas.
+* `@gamingalo/sdk/testing` with `createMockSdk()` for game makers' tests. It's refused outside a test context with `MOCK_NOT_ALLOWED`.
+
+### Changed
+
+* **Breaking:** `Gamingalo`, the SDK reference and every feature API are frozen, with no prototype. Internal code ignores polluted prototypes and built-ins patched after the SDK loads.
+* **Breaking:** `init` gives out one reference per realm. While it's running, another `init` rejects with `SDK_ALREADY_INITIALIZED`, even with the same configuration.
+* The production bundle no longer contains Zod, reducing it from 13.3 KB to about 7.7 KB gzipped.
+
+### Removed
+
+* **Breaking:** `Gamingalo.instance()`, because any script on the page could use it to get the reference.
+* **Breaking:** the `mode` and `mock` options on `init`. Production builds contain no mock code, and the build fails if any reaches them.
+
+### Security
+
+* The SDK must load before other scripts. Protection only covers code that runs after it. Stored data and browser APIs can't be protected from same-origin code, so anything that must be trustworthy has to be decided on a server.
+
 ## [0.4.0] - 2026-11-01
 
 ### Added

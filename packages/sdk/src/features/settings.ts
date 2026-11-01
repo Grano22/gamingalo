@@ -1,34 +1,35 @@
 import { GamingaloError } from '@gamingalo/errors';
+import { clone, freeze, hasOwn, parseJson, SafeMap, stringifyJson } from '../primordials';
 import type { CapabilityTier } from './environment';
 
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
-const QUALITY_PRESETS = {
-  low: {
+const QUALITY_PRESETS = freeze({
+  low: freeze({
     resolutionScale: 0.75,
     textureQuality: 'low',
     shadowQuality: 'off',
     antialiasing: false,
     targetFps: 30,
     powerPreference: 'low-power',
-  },
-  medium: {
+  } as const),
+  medium: freeze({
     resolutionScale: 1,
     textureQuality: 'medium',
     shadowQuality: 'low',
     antialiasing: true,
     targetFps: 60,
     powerPreference: 'high-performance',
-  },
-  high: {
+  } as const),
+  high: freeze({
     resolutionScale: 1,
     textureQuality: 'high',
     shadowQuality: 'high',
     antialiasing: true,
     targetFps: 60,
     powerPreference: 'high-performance',
-  },
-} as const;
+  } as const),
+});
 
 export type QualityLevel = keyof typeof QUALITY_PRESETS;
 export type GraphicsPreset = QualityLevel | 'auto';
@@ -60,7 +61,7 @@ export interface KeyValueStore {
 }
 
 export function createMemoryStore(): KeyValueStore {
-  const items = new Map<string, string>();
+  const items = new SafeMap<string, string>();
   return {
     getItem: (key) => items.get(key) ?? null,
     setItem: (key, value) => void items.set(key, value),
@@ -95,13 +96,16 @@ function isValidJson(value: unknown): value is JsonValue {
 }
 
 function isGraphicsPreset(value: unknown): value is GraphicsPreset {
-  return value === 'auto' || (typeof value === 'string' && Object.keys(QUALITY_PRESETS).includes(value));
+  return value === 'auto' || (typeof value === 'string' && hasOwn(QUALITY_PRESETS, value));
 }
 
+/** The result is frozen, so one event handler can't change what the next one receives. */
 export function resolveGraphics(preset: GraphicsPreset, tier: CapabilityTier): GraphicsSettings {
   const quality: QualityLevel = preset !== 'auto' ? preset : tier === 'unknown' ? 'medium' : tier;
-  return { ...QUALITY_PRESETS[quality], preset, quality };
+  return freeze({ ...QUALITY_PRESETS[quality], preset, quality });
 }
+
+freeze(resolveGraphics);
 
 export interface SettingsOptions {
   gameId: string;
@@ -113,14 +117,17 @@ export interface SettingsOptions {
 export function createSettings(options: SettingsOptions): Settings {
   const { store, readTier, onGraphicsChange } = options;
   const storageKey = `gamingalo:${options.gameId}:settings`;
-  const values = new Map<string, JsonValue>();
+  const values = new SafeMap<string, JsonValue>();
   let graphicsPreset: GraphicsPreset = 'auto';
   let persistent = !!store;
 
   try {
-    const stored: unknown = JSON.parse(store?.getItem(storageKey) ?? 'null');
+    const stored: unknown = parseJson(store?.getItem(storageKey) ?? 'null');
     if (typeof stored === 'object' && stored !== null) {
-      const { values: storedValues, graphicsPreset: storedPreset } = stored as Record<string, unknown>;
+      // Own properties only, so a polluted prototype can't supply settings.
+      const fields = stored as Record<string, unknown>;
+      const storedPreset = hasOwn(fields, 'graphicsPreset') ? fields['graphicsPreset'] : undefined;
+      const storedValues = hasOwn(fields, 'values') ? fields['values'] : undefined;
       if (isGraphicsPreset(storedPreset)) graphicsPreset = storedPreset;
       if (typeof storedValues === 'object' && storedValues !== null) {
         for (const [key, value] of Object.entries(storedValues)) {
@@ -135,7 +142,7 @@ export function createSettings(options: SettingsOptions): Settings {
   const save = () => {
     if (!store) return;
     try {
-      store.setItem(storageKey, JSON.stringify({ values: Object.fromEntries(values), graphicsPreset }));
+      store.setItem(storageKey, stringifyJson({ values: Object.fromEntries(values), graphicsPreset }));
       persistent = true;
     } catch {
       persistent = false;
@@ -154,21 +161,21 @@ export function createSettings(options: SettingsOptions): Settings {
     },
     get(key: string, fallback?: JsonValue) {
       const value = values.get(key);
-      return (value === undefined ? fallback : structuredClone(value)) as never;
+      return (value === undefined ? fallback : clone(value)) as never;
     },
     set(key, value) {
       assertKey(key);
       if (!isValidJson(value)) {
         throw new GamingaloError('INVALID_ARGUMENT', `The value for setting "${key}" must be JSON.`);
       }
-      values.set(key, structuredClone(value));
+      values.set(key, clone(value));
       save();
     },
     remove(key) {
       if (values.delete(key)) save();
     },
     all() {
-      return structuredClone(Object.fromEntries(values));
+      return clone(Object.fromEntries(values));
     },
     getGraphicsPreset() {
       return graphicsPreset;

@@ -7,6 +7,7 @@
 | Spec | Covers | Status |
 |---|---|---|
 | `sdk-initiation_0.0.1` | SDK-001, SDK-009, XC-005 | In progress |
+| `sdk-hardening_0.1.0` | SDK-037, SDK-038, SDK-039 | Done |
 | `backend-core_0.1.0` | BE-001, XC-006 | Not started |
 | `identity_0.1.0` | BE-002, SDK-002, SDK-011, WEB-004, XC-008, XC-009, XC-010 | Not started |
 | `game-hosting_0.1.0` | BE-003, BE-004, BE-005, WEB-003, XC-002 | Not started |

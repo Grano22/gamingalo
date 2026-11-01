@@ -1,14 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { computeTier, parseUserAgent, readEnvironment, watchDevices } from './environment';
-import { Gamingalo } from '../index';
+import { startSdk, stopSdks } from '../test-helpers';
+import { createMockSdk } from '../testing';
 
 afterEach(async () => {
   vi.unstubAllGlobals();
-  try {
-    await Gamingalo.instance().shutdown();
-  } catch {
-    // Nothing was running.
-  }
+  await stopSdks();
 });
 
 describe('computeTier', () => {
@@ -115,11 +112,7 @@ describe('watchDevices', () => {
 
 describe('sdk.environment', () => {
   it('returns a fixed result in mock mode, with overrides', async () => {
-    const sdk = await Gamingalo.init({
-      gameId: 'my-game',
-      mode: 'mock',
-      mock: { environment: { tier: 'low' } },
-    });
+    const sdk = await createMockSdk({ environment: { tier: 'low' } });
 
     const env = await sdk.environment.read();
 
@@ -129,7 +122,7 @@ describe('sdk.environment', () => {
   });
 
   it('emits devices in production and stops after shutdown', async () => {
-    const sdk = await Gamingalo.init({ gameId: 'my-game' });
+    const sdk = await startSdk();
     const handler = vi.fn();
     sdk.on('devices', handler);
 
@@ -142,10 +135,10 @@ describe('sdk.environment', () => {
   });
 
   it('can emit devices through mock controls', async () => {
-    const sdk = await Gamingalo.init({ gameId: 'my-game', mode: 'mock' });
+    const sdk = await createMockSdk();
     const handler = vi.fn();
     sdk.on('devices', handler);
-    sdk.mock?.devicesChanged();
+    sdk.mock.devicesChanged();
     expect(handler).toHaveBeenCalledTimes(1);
   });
 });
