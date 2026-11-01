@@ -47,7 +47,7 @@ mocked.mock.setConnection('online');
 
 Rules:
 
-* `Gamingalo`, the SDK reference, every feature API, their methods, errors and returned presets are frozen. The SDK reference and feature APIs have a `null` prototype.
+* `Gamingalo`, the SDK reference, every feature API, their methods and returned presets are frozen. Error fields are read-only, but error instances stay extensible, because loggers and error reporting tools mark the errors they process. The SDK reference and feature APIs have a `null` prototype.
 * `init` gives out one reference per realm. While it is running, another `init` rejects with `SDK_ALREADY_INITIALIZED`, even with the same configuration. Only `shutdown` allows a new `init`. There is no way to look up the running reference.
 * The SDK sets no globals.
 * A realm that doesn't match its restrictions rejects with `REALM_NOT_ALLOWED`. This includes a canvas from another iframe.

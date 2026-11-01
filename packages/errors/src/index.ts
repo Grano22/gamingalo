@@ -1,4 +1,4 @@
-const { freeze, hasOwn } = Object;
+const { defineProperty, freeze, hasOwn } = Object;
 
 /** Stable error codes. Codes are public API: add new ones, but never rename or reuse them. */
 export const ERROR_DEFINITIONS = freeze({
@@ -6,6 +6,8 @@ export const ERROR_DEFINITIONS = freeze({
   SDK_ALREADY_INITIALIZED: freeze({ retryable: false }),
   INVALID_CONFIG: freeze({ retryable: false }),
   INVALID_ARGUMENT: freeze({ retryable: false }),
+  NOT_FOUND: freeze({ retryable: false }),
+  SERVICE_UNAVAILABLE: freeze({ retryable: true }),
   FEATURE_UNAVAILABLE: freeze({ retryable: false }),
   NETWORK_OFFLINE: freeze({ retryable: true }),
   STORAGE_UNAVAILABLE: freeze({ retryable: true }),
@@ -21,7 +23,11 @@ export type ErrorCode = keyof typeof ERROR_DEFINITIONS;
 
 const BRAND = Symbol.for('gamingalo.error');
 
-/** Instances, the class and its prototype are frozen, so an error can't be changed after it's created. */
+/**
+ * The class and its prototype are frozen, and an error's fields are read-only, so they can't be
+ * changed after it's created. Instances stay extensible, because loggers and error reporting
+ * tools add their own markers to errors, and fail if they can't.
+ */
 export class GamingaloError extends Error {
   readonly code: ErrorCode;
   readonly retryable: boolean;
@@ -32,7 +38,11 @@ export class GamingaloError extends Error {
     this.name = 'GamingaloError';
     this.code = code;
     this.retryable = ERROR_DEFINITIONS[code].retryable;
-    freeze(this);
+    for (const field of ['name', 'message', 'cause', 'code', 'retryable', BRAND]) {
+      if (hasOwn(this, field)) {
+        defineProperty(this, field, { __proto__: null, writable: false, configurable: false } as PropertyDescriptor);
+      }
+    }
   }
 }
 

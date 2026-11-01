@@ -22,7 +22,6 @@ describe('GamingaloError', () => {
 describe('tamper resistance', () => {
   it('freezes errors, the class, its prototype and the definitions', () => {
     const error = new GamingaloError('INTERNAL', 'x');
-    expect(Object.isFrozen(error)).toBe(true);
     expect(Object.isFrozen(GamingaloError)).toBe(true);
     expect(Object.isFrozen(GamingaloError.prototype)).toBe(true);
     expect(Object.isFrozen(ERROR_DEFINITIONS)).toBe(true);
@@ -30,6 +29,24 @@ describe('tamper resistance', () => {
     expect(() => {
       (error as { code: string }).code = 'NETWORK_OFFLINE';
     }).toThrow(TypeError);
+  });
+
+  it('makes error fields read-only, including the cause', () => {
+    const error = new GamingaloError('INTERNAL', 'original', { cause: 'why' }) as unknown as Record<string, unknown>;
+    for (const field of ['code', 'retryable', 'message', 'name', 'cause']) {
+      expect(() => {
+        error[field] = 'changed';
+      }).toThrow(TypeError);
+      expect(() => delete error[field]).toThrow(TypeError);
+    }
+    expect(error['message']).toBe('original');
+  });
+
+  it('lets logging tools add their own markers', () => {
+    const marker = Symbol('circular-ref-tag');
+    const error = new GamingaloError('INTERNAL', 'x') as unknown as Record<symbol, unknown>;
+    error[marker] = true;
+    expect(error[marker]).toBe(true);
   });
 
   it('is not fooled by a polluted prototype', () => {

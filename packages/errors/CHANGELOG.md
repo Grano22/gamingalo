@@ -2,6 +2,16 @@
 
 All notable changes to `@gamingalo/errors` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-11-01
+
+### Added
+
+* `NOT_FOUND` and `SERVICE_UNAVAILABLE` error codes for web services.
+
+### Fixed
+
+* Error instances are no longer frozen, because that broke loggers and error reporting tools that mark the errors they process. Their fields are read-only instead, and the class and prototype stay frozen.
+
 ## [0.4.0] - 2026-11-01
 
 ### Added

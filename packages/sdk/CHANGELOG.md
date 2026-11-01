@@ -2,6 +2,12 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.8.1] - 2026-11-01
+
+### Fixed
+
+* `GamingaloError` instances are no longer frozen, because that broke loggers and error reporting tools. Their fields are read-only instead.
+
 ## [0.8.0] - 2026-11-01
 
 ### Added
