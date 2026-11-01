@@ -1,0 +1,7 @@
+@import 'tailwindcss';
+@plugin 'tailwindcss-primeui';
+
+body {
+  background: var(--p-surface-50, #fafafa);
+  color: var(--p-surface-900, #18181b);
+}

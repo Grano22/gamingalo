@@ -4,7 +4,7 @@
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "sharedGlobals": ["{workspaceRoot}/tsconfig.base.json", "{workspaceRoot}/package-lock.json"],
-    "production": ["default", "!{projectRoot}/**/*.test.ts", "!{projectRoot}/e2e/**/*"]
+    "production": ["default", "!{projectRoot}/**/*.test.ts", "!{projectRoot}/**/*.spec.ts", "!{projectRoot}/e2e/**/*"]
   },
   "targetDefaults": {
     "build": {
