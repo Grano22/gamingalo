@@ -1,6 +1,7 @@
 export { GamingaloError, isGamingaloError, type ErrorCode } from '@gamingalo/errors';
 export type { GamingaloConfig, GamingaloMode, MockOptions } from './config';
 export type { ConnectionState } from './connection';
+export type { BrowserName, CapabilityTier, Environment, EnvironmentInfo } from './environment';
 export type { FeatureName, Features } from './features';
 export {
   Gamingalo,

@@ -2,6 +2,7 @@ import { GamingaloError } from '@gamingalo/errors';
 import type { GamingaloConfig, GamingaloMode, ResolvedConfig } from './config';
 import { resolveConfig } from './config';
 import { readBrowserConnection, watchBrowserConnection, type ConnectionState } from './connection';
+import { MOCK_ENVIRONMENT, readEnvironment, watchDevices, type Environment } from './environment';
 import type { Features } from './features';
 import { isPageHidden, watchPageLifecycle } from './lifecycle';
 
@@ -9,6 +10,8 @@ export interface SdkEventMap {
   suspend: undefined;
   resume: undefined;
   connection: ConnectionState;
+  /** A gamepad or media device was added or removed. Call `environment.read()` for current values. */
+  devices: undefined;
 }
 
 export type SdkEventHandler<E extends keyof SdkEventMap> = (payload: SdkEventMap[E]) => void;
@@ -22,6 +25,7 @@ export interface MockControls {
   setConnection(state: ConnectionState): void;
   suspend(): void;
   resume(): void;
+  devicesChanged(): void;
 }
 
 export interface GamingaloSdk {
@@ -29,6 +33,7 @@ export interface GamingaloSdk {
   readonly mode: GamingaloMode;
   readonly features: Features;
   readonly connection: Connection;
+  readonly environment: Environment;
   /** `undefined` unless `mode` is `mock`. */
   readonly mock: MockControls | undefined;
   /** Subscribes to an event and returns a function that unsubscribes. */
@@ -68,6 +73,10 @@ class SdkInstance implements GamingaloSdk {
           this.#assertActive();
           this.#resume();
         },
+        devicesChanged: () => {
+          this.#assertActive();
+          this.#emit('devices', undefined);
+        },
       };
     } else {
       this.#connection = readBrowserConnection();
@@ -79,6 +88,7 @@ class SdkInstance implements GamingaloSdk {
           () => this.#suspend(),
           () => this.#resume(),
         ),
+        watchDevices(() => this.#emit('devices', undefined)),
       );
     }
   }
@@ -112,6 +122,19 @@ class SdkInstance implements GamingaloSdk {
     return {
       get state() {
         return read();
+      },
+    };
+  }
+
+  get environment(): Environment {
+    this.#assertActive();
+    return {
+      read: async () => {
+        this.#assertActive();
+        if (this.#config.mode === 'mock') {
+          return structuredClone({ ...MOCK_ENVIRONMENT, ...this.#config.mock.environment });
+        }
+        return readEnvironment();
       },
     };
   }

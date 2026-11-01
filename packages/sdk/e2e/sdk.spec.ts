@@ -71,6 +71,24 @@ test('AC-4: suspend and resume follow page visibility', async ({ page }) => {
   expect(events).toEqual(['suspend', 'resume']);
 });
 
+test('environment: reads complete information with no permission prompts', async ({ page }) => {
+  let dialogs = 0;
+  page.on('dialog', () => dialogs++);
+  await open(page);
+
+  const env = await page.evaluate(async () => {
+    const sdk = await window.Gamingalo.init({ gameId: 'e2e-game' });
+    return sdk.environment.read();
+  });
+
+  expect(['chrome', 'firefox', 'safari']).toContain(env.browser.name);
+  expect(env.hardware.cpuCores).toBeGreaterThan(0);
+  expect(typeof env.graphics.webgl2).toBe('boolean');
+  expect(env.display.width).toBeGreaterThan(0);
+  expect(['low', 'medium', 'high', 'unknown']).toContain(env.tier);
+  expect(dialogs).toBe(0);
+});
+
 test('AC-7: mock mode makes no network requests', async ({ page }) => {
   await open(page);
   const requests: string[] = [];
