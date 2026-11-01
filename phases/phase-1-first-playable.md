@@ -8,6 +8,9 @@
 |---|---|---|
 | `sdk-initiation_0.0.1` | SDK-001, SDK-009, XC-005 | In progress |
 | `sdk-hardening_0.1.0` | SDK-037, SDK-038, SDK-039 | Done |
+| `sdk-modules_0.1.0` | SDK-036, SDK-040, PLG-001 | In progress |
+| `sdk-localization_0.1.0` | SDK-019 | Not started |
+| `sdk-connection_0.1.0` | SDK-041 | Not started |
 | `backend-core_0.1.0` | BE-001, XC-006 | Not started |
 | `identity_0.1.0` | BE-002, SDK-002, SDK-011, WEB-004, XC-008, XC-009, XC-010 | Not started |
 | `game-hosting_0.1.0` | BE-003, BE-004, BE-005, WEB-003, XC-002 | Not started |
@@ -19,15 +22,19 @@
 
 ## Order
 
-1. `sdk-initiation` and `backend-core`
+The web platform and web services come first, and the SDK connects to them afterwards (D-23). SDK work that needs no connection can continue alongside.
+
+1. `backend-core` and `web-shell`
 2. `identity` and `game-hosting`
-3. Everything else, in parallel
+3. `sdk-connection`, then the online parts of `game-memory`
+4. Everything else, in parallel
 
 ## Exit criteria
 
 * [ ] A Three.js sample and a Godot sample are published with `gamingalo game:publish` from CI.
 * [ ] Publishing fails when a game exceeds a static budget in `gamingalo.json`.
 * [ ] An unsigned or tampered upload is rejected.
+* [ ] The SDK connects to both the platform and a sample custom server, and works with neither.
 * [ ] A sample attack game can't read another game's storage or the player's platform token.
 * [ ] A guest can play, upgrade to an account and keep their saves.
 * [ ] A save made on one device loads on another. A conflict never silently loses progress.

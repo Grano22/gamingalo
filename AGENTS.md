@@ -67,6 +67,8 @@ Then apply the answer wherever it belongs, such as `docs/decisions.md`.
 | Backend | See D-05 in `docs/decisions.md` |
 | CLI | TypeScript, Node.js, commander |
 | MCP Server | TypeScript, read-only by default |
+| SDK plugins | Separate packages under `packages/plugin-*`, built on the public plugin API only |
+| Server SDK | Planned (SRV-002). Custom servers use the documented protocol (SRV-001) |
 
 ## Rules that must not be broken
 

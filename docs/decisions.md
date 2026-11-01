@@ -17,7 +17,7 @@ Status meanings:
 | D-07 | Ranked play | Default | No ranked play at launch. Rely on server-side score validation and defer risk scoring to Phase 4. | BE-011, BE-021 |
 | D-08 | Free-tier funding | Open | Who pays for free cloud saves (200 MB per user in the draft), TURN relay traffic and moderation? Should Phase 1 enforce a smaller quota until the cost model exists? | XC-016, BE-006, BE-016, BE-013 |
 | D-09 | Meaning of "Budget" | Decided | A general term for technical budgets: bundle size, performance and similar limits. | CLI-008, CLI-010 |
-| D-10 | Meaning of "Preferences AI" | Open | What should this feature do? It stays unscheduled until defined. | SDK-036 |
+| D-10 | Meaning of "Preferences AI" | Decided | It was meant to be the Preferences API, with no AI: custom game settings, separate from the developer-level Settings API. | SDK-036 |
 | D-11 | Achievements and trophies | Default | Achievements are defined by each game. Trophies are platform-wide rewards. | BE-010, SDK-013 |
 | D-12 | NFT and web3 | Default | Parked. Platform points move forward only after legal review. | WEB-017, WEB-021 |
 | D-13 | Game isolation | Default | Each game runs in a sandboxed iframe on its own subdomain of a separate registrable domain, listed on the Public Suffix List. The platform passes scoped game tokens through a bridge. | XC-002, BE-005, WEB-003 |
@@ -30,3 +30,6 @@ Status meanings:
 | D-20 | Mock mode | Decided | Mock mode stays, for game makers' tests only. It lives in `@gamingalo/sdk/testing`, is refused outside a test context, and can't reach production builds. | SDK-039 |
 | D-21 | SDK access | Decided | The public SDK is frozen and protected from prototype pollution. One reference exists per realm, and it can be bound to specific origins, a frame type and a canvas. | SDK-037, SDK-038 |
 | D-22 | Zod in the SDK runtime | Default | The SDK's production code doesn't use Zod, because its parsers read inherited properties, which conflicts with D-21. Zod stays the default everywhere else. | SDK-037 |
+| D-23 | Build order and online connection | Decided | The web platform and web services come first, and the SDK connects to them afterwards. The SDK also supports custom servers, with their own game modes and matchmaking. A Server SDK for hosting is planned for later. | SDK-041, SDK-042, SRV-001, SRV-002 |
+| D-24 | SDK modularity | Decided | The SDK is modular. Optional features are plugins, in separate packages, that a game adds at `init`. | SDK-040, PLG-001 |
+| D-25 | Localization API | Default | The owner's "coations API ... i18n" is read as a Localization API. Confirm in `TODO.md`. | SDK-019 |

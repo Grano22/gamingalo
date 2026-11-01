@@ -13,6 +13,7 @@
 | `blueprints_0.1.0` | WEB-018 | Not started |
 | `platform-points_0.1.0` | WEB-017 | Not started |
 | `ai-creator-tools_0.1.0` | WEB-019, WEB-020 | Not started |
+| `server-sdk_0.1.0` | SRV-002, SRV-003 | Not started |
 
 ## Exit criteria
 
@@ -20,6 +21,7 @@
 * [ ] Every marketplace item passes moderation and scanning, and takedowns work end to end.
 * [ ] MCP lists available 3D models and their features.
 * [ ] Points can't be purchased, spent or redeemed in any way the legal review ruled out.
+* [ ] A sample game server built with the Server SDK can be hosted by a third party and pass certification.
 * [ ] Games built by AI tools pass the same publishing checks as any other game.
 
 ## Risks
@@ -30,4 +32,3 @@
 ## Parked
 
 * WEB-021: NFT and web3 support, see D-12.
-* SDK-036: "Preferences AI" is unscheduled until D-10 is answered.

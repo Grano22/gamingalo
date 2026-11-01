@@ -10,6 +10,8 @@ Every requirement has a stable ID and belongs to one phase. IDs are never reused
 | [backend.md](backend.md) | Backend |
 | [cli.md](cli.md) | CLI |
 | [mcp.md](mcp.md) | MCP Server |
+| [plugins.md](plugins.md) | Official SDK plugins |
+| [server-sdk.md](server-sdk.md) | Server SDK |
 | [cross-cutting.md](cross-cutting.md) | Security, compliance and engineering |
 
 ## Origin column
