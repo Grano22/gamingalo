@@ -14,7 +14,7 @@ Questions waiting for an answer from the project owner. See the rule in `AGENTS.
 * [ ] Should the npm scope be `@gamingalo`? It hasn't been checked or registered.
 * [x] ~~Should mock mode stay? It was meant for working without a backend, which basic SDK use no longer needs (D-19). It still gives games test controls for connection, suspend and resume.~~ **Answer:** Yes, but only in a test context, so game designers can test features in unit tests. It must not be active in production. (D-20)
 * [x] ~~Which foreign API should extended online features use first: the Gamingalo backend, or an adapter that lets game makers plug in their own?~~ **Answer:** Build the web platform and web services first and connect to them, but also support custom servers with different play modes, matchmaking and so on. A Server SDK for hosting is planned for later. (D-23)
-* [ ] Did "coations API ... i18n" mean a Localization API? It's being built that way (D-25).
+* [x] ~~Did "coations API ... i18n" mean a Localization API? It's being built that way (D-25).~~ **Answer:** Yes, and it should also detect geolocation, the user's language, keyboard layout and so on.
 
 ## Manual checks
 

@@ -63,8 +63,8 @@ Then apply the answer wherever it belongs, such as `docs/decisions.md`.
 |---|---|
 | SDK | Plain TypeScript library with no framework dependency and no backend of its own. `src/features/*` holds plain feature functions, and `src/facade.ts` only exposes them as methods. Only extended online features call a foreign API (D-19). Entry points: `src/index.ts` (production) and `src/testing.ts` (tests). |
 | Game Wrapper | Core SDK plus engine and framework adapters |
-| Web Platform | Angular, Vertical Slice Architecture, Testing Library, PrimeNG, Tailwind, Lucide, NgRx Signals |
-| Backend | See D-05 in `docs/decisions.md` |
+| Web Platform | `apps/web`: Angular, Vertical Slice Architecture, Testing Library, PrimeNG, Tailwind, Lucide, NgRx Signals |
+| Backend | `apps/api`: Fastify and PostgreSQL (D-05), organized as vertical slices. Development and tests use PGlite. API shapes live in `packages/contracts` |
 | CLI | TypeScript, Node.js, commander |
 | MCP Server | TypeScript, read-only by default |
 | SDK plugins | Separate packages under `packages/plugin-*`, built on the public plugin API only |

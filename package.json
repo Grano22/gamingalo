@@ -6,7 +6,8 @@
     "node": ">=22"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "check": "nx run-many -t lint typecheck test build"

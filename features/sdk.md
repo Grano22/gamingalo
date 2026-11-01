@@ -60,7 +60,7 @@ Core library for game makers: a single public facade whose methods come from pla
 | ID | Requirement | Origin | Phase |
 |---|---|---|---|
 | SDK-018 | Accessibility: high-contrast filters, `prefers-contrast` and `forced-colors` support, ARIA mirror of game UI, optional speech output | Changed | P2 |
-| SDK-019 | Localization API: messages, locale detection and fallback, plurals, text direction, number and date formatting (i18n) | Original | P1 |
+| SDK-019 | Localization API: messages, plurals, text direction, number and date formatting (i18n), plus detection of the player's language, region, keyboard layout and, when the game asks and the player allows it, geolocation | Original | P1 |
 | SDK-024 | Capture API: screenshots, recordings and streaming, saved as public or private on the profile or downloaded locally | Original | P3 |
 
 ## Content protection and integrity

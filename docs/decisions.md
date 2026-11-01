@@ -32,4 +32,4 @@ Status meanings:
 | D-22 | Zod in the SDK runtime | Default | The SDK's production code doesn't use Zod, because its parsers read inherited properties, which conflicts with D-21. Zod stays the default everywhere else. | SDK-037 |
 | D-23 | Build order and online connection | Decided | The web platform and web services come first, and the SDK connects to them afterwards. The SDK also supports custom servers, with their own game modes and matchmaking. A Server SDK for hosting is planned for later. | SDK-041, SDK-042, SRV-001, SRV-002 |
 | D-24 | SDK modularity | Decided | The SDK is modular. Optional features are plugins, in separate packages, that a game adds at `init`. | SDK-040, PLG-001 |
-| D-25 | Localization API | Default | The owner's "coations API ... i18n" is read as a Localization API. Confirm in `TODO.md`. | SDK-019 |
+| D-25 | Localization API | Decided | The SDK has a Localization API for i18n. It detects language, a coarse region and keyboard layout with no prompt. Precise geolocation needs a player's permission, so it runs only when a game asks. Keyboard layout is `unknown` where the browser doesn't expose it. | SDK-019 |
