@@ -7,6 +7,7 @@ import { readBrowserConnection, watchBrowserConnection } from './features/connec
 import { readEnvironment, watchDevices } from './features/environment';
 import { getBrowserFiles } from './features/files';
 import { isPageHidden, watchPageLifecycle } from './features/lifecycle';
+import { createNetwork, createSessionId } from './features/network';
 import { getBrowserSaveBackend } from './features/saves';
 import { getBrowserStore } from './features/settings';
 import { createBrowserStorageInfo } from './features/storage';
@@ -24,6 +25,9 @@ export interface GamingaloEntry {
 }
 
 let running = false;
+// Captured when the SDK loads, so replacing `fetch` later can't intercept measurements.
+const nativeFetch = globalThis.fetch;
+const capturedFetch: typeof fetch = (input, init) => nativeFetch(input, init);
 
 async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
   const { gameId, realm: realmOptions } = resolveConfig(config);
@@ -54,6 +58,7 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       files,
       storage: createBrowserStorageInfo(),
       accessibility: accessibility.api,
+      network: createNetwork(capturedFetch, createSessionId()),
       onShutdown: () => {
         running = false;
       },

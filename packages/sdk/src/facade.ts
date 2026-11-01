@@ -5,6 +5,7 @@ import type { GameFiles } from './features/files';
 import type { ConnectionState } from './features/connection';
 import type { Features } from './features/discovery';
 import type { Environment, EnvironmentInfo } from './features/environment';
+import type { Network } from './features/network';
 import { createSaves, type SaveBackend, type Saves } from './features/saves';
 import { createSessionMemory, type SessionMemory } from './features/session';
 import { createSettings, type GraphicsSettings, type KeyValueStore, type Settings } from './features/settings';
@@ -57,6 +58,7 @@ export interface GamingaloSdk {
   readonly files: GameFiles;
   readonly storage: StorageInfo;
   readonly accessibility: Accessibility;
+  readonly network: Network;
   /** Subscribes to an event and returns a function that unsubscribes. */
   on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void;
   /** Stops the SDK. Calling it again does nothing. Every other member then throws `SDK_NOT_INITIALIZED`. */
@@ -77,6 +79,7 @@ export interface SdkParts {
   files: GameFiles | undefined;
   storage: StorageInfo;
   accessibility: Accessibility;
+  network: Network;
   onShutdown: () => void;
 }
 
@@ -176,6 +179,7 @@ export function buildSdk<Extra extends object = object>(
   const cache = guard(parts.cache);
   const storage = guard(parts.storage);
   const accessibility = guard(parts.accessibility);
+  const network = guard(parts.network);
   const { saveBackend } = parts;
   const saves =
     saveBackend && guard(createSaves({ gameId: parts.gameId, backend: saveBackend, markers: parts.store }));
@@ -224,6 +228,9 @@ export function buildSdk<Extra extends object = object>(
     },
     get accessibility() {
       return accessibility;
+    },
+    get network() {
+      return network;
     },
     on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void {
       if (!hasOwn(EVENT_NAMES, event) || typeof handler !== 'function') {

@@ -19,6 +19,7 @@ import { createMemoryFiles } from './features/files';
 import { CONNECTION_STATES, type ConnectionState } from './features/connection';
 import { FEATURE_NAMES, type FeatureName } from './features/discovery';
 import type { EnvironmentInfo } from './features/environment';
+import { createSessionId, type Network, type NetworkMeasurement } from './features/network';
 import { createMemorySaveBackend } from './features/saves';
 import { createMemoryStore } from './features/settings';
 import { createMockStorageInfo } from './features/storage';
@@ -36,6 +37,8 @@ export interface MockOptions {
   features?: FeatureName[];
   /** Replaces top-level sections of the fixed mock environment. */
   environment?: Partial<EnvironmentInfo>;
+  /** Values returned by `network.measure()`. */
+  network?: Partial<NetworkMeasurement>;
 }
 
 /** Controls for simulating events in a test. */
@@ -44,6 +47,7 @@ export interface MockControls {
   suspend(): void;
   resume(): void;
   devicesChanged(): void;
+  setNetwork(values: Partial<NetworkMeasurement>): void;
   readonly accessibility: MockAccessibilityControls;
 }
 
@@ -169,7 +173,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   const own = snapshotOwn(options);
   if (!own) throw invalid('Expected an object.');
   for (const name of Object.keys(own)) {
-    if (!['gameId', 'connection', 'features', 'environment'].includes(name)) throw invalid(`Unknown option ${name}.`);
+    if (!['gameId', 'connection', 'features', 'environment', 'network'].includes(name)) throw invalid(`Unknown option ${name}.`);
   }
 
   const connection = own['connection'] ?? 'online';
@@ -184,6 +188,30 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   for (const name of featureList as string[]) features.add(name);
   const overrides = snapshotOwn(own['environment']) ?? {};
   const accessibility = createMockAccessibility();
+  let currentConnection = connection as ConnectionState;
+  let measurement: NetworkMeasurement = freeze({
+    pingMs: 20,
+    jitterMs: 2,
+    lossPercent: 0,
+    samples: 5,
+    throughputMbps: 100,
+    ...snapshotOwn(own['network']),
+  });
+  const sessionId = createSessionId();
+  const network: Network = {
+    get sessionId() {
+      return sessionId;
+    },
+    info: () =>
+      freeze({
+        online: currentConnection !== 'offline',
+        effectiveType: '4g',
+        downlinkMbps: 100,
+        rttMs: 20,
+        saveData: false,
+      }),
+    measure: async () => measurement,
+  };
 
   return buildSdk<{ mock: MockControls }>(
     {
@@ -199,12 +227,14 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
       files: features.has('files') ? createMemoryFiles() : undefined,
       storage: createMockStorageInfo(),
       accessibility: accessibility.api,
+      network,
       onShutdown: () => {},
     },
     (controls) => ({
       mock: freeze({
         setConnection(state: ConnectionState) {
           controls.assertActive();
+          currentConnection = state;
           controls.setConnection(state);
         },
         suspend() {
@@ -218,6 +248,10 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
         devicesChanged() {
           controls.assertActive();
           controls.devicesChanged();
+        },
+        setNetwork(values: Partial<NetworkMeasurement>) {
+          controls.assertActive();
+          measurement = freeze({ ...measurement, ...values });
         },
         accessibility: accessibility.controls(controls.accessibilityChanged),
       }),

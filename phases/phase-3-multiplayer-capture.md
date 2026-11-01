@@ -6,7 +6,7 @@
 
 | Spec | Covers | Status |
 |---|---|---|
-| `networking_0.1.0` | BE-016, SDK-020, SDK-023 | Not started |
+| `networking_0.1.0` | BE-016, SDK-020, SDK-023 | In progress |
 | `multiplayer-services_0.1.0` | BE-017, BE-018, SDK-021, SDK-022 | Not started |
 | `capture_0.1.0` | BE-019, SDK-024, WEB-013 | Not started |
 | `player-imports_0.1.0` | SDK-025 | Not started |

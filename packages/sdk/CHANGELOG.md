@@ -2,6 +2,13 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.8.0] - 2026-11-01
+
+### Added
+
+* `sdk.network`: a random session ID, browser connection info, and `measure()` for ping, jitter, request loss and throughput against a URL the game chooses. It sends nothing until called, and never exposes IP or MAC addresses.
+* `network` mock option and `sdk.mock.setNetwork()`.
+
 ## [0.7.0] - 2026-11-01
 
 ### Added

@@ -22,6 +22,7 @@ export {
   type Environment,
   type EnvironmentInfo,
 } from './features/environment';
+export type { MeasureOptions, Network, NetworkInfo, NetworkMeasurement } from './features/network';
 export type { SaveInfo, SaveRecord, SaveSchema, Saves } from './features/saves';
 export type { SessionMemory } from './features/session';
 export {

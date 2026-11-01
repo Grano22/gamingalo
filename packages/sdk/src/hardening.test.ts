@@ -45,6 +45,7 @@ describe('public surface', () => {
       sdk.cache,
       sdk.storage,
       sdk.accessibility,
+      sdk.network,
     ];
 
     for (const api of apis) {
