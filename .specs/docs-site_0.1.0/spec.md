@@ -12,7 +12,7 @@
 * `apps/docs` uses Next.js 16 and Fumadocs, following its manual installation, as a static export with search that runs in the browser.
 * Lit Grid, the design system, is in `components/ds/`: color, type and shape tokens, and `Badge`, `Kbd`, `Tile`, `TileGrid`, `Swatch` and `TileLogo`. Its own page documents it.
 * Changelog pages are generated from each module's `CHANGELOG.md` at build time.
-* `.github/workflows/docs.yml` builds it with the repository name as base path, and deploys it to GitHub Pages on every push to `main`.
+* `.github/workflows/docs.yml` builds it with the repository name as base path, and deploys it to GitHub Pages on every push to `master`.
 
 ## Acceptance criteria
 

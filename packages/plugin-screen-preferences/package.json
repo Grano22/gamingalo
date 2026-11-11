@@ -2,6 +2,7 @@
   "name": "@gamingalo/plugin-screen-preferences",
   "version": "0.2.0",
   "description": "Player-adjustable brightness, contrast, saturation and gamma for Gamingalo games",
+  "license": "SEE LICENSE IN LICENSE",
   "keywords": [
     "gamingalo",
     "gamingalo-plugin"
@@ -27,6 +28,7 @@
   },
   "files": [
     "CHANGELOG.md",
+    "LICENSE",
     "changelogs",
     "dist"
   ],

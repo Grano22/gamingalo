@@ -28,9 +28,9 @@ Questions waiting for an answer from the project owner. See the rule in `AGENTS.
 
 These are one-time settings on GitHub and npm, which only the owner can change:
 
-* [ ] Add an `NPM_TOKEN` secret (an npm automation token for the `gamingalo` organization) to a `release` environment in the repository settings. Or set up npm trusted publishing for each package, and the token isn't needed.
-* [ ] In the repository's Pages settings, set the source to GitHub Actions.
-* [ ] Which license should the published packages use? They have none, which means nobody may legally reuse them.
+* [x] ~~Add an `NPM_TOKEN` secret (an npm automation token for the `gamingalo` organization) to a `release` environment in the repository settings. Or set up npm trusted publishing for each package, and the token isn't needed.~~ **Answer:** Added in the web UI. OpenTofu now manages the `release` environment, but not the secret.
+* [x] ~~In the repository's Pages settings, set the source to GitHub Actions.~~ **Answer:** Already set, and now managed by OpenTofu.
+* [x] ~~Which license should the published packages use? They have none, which means nobody may legally reuse them.~~ **Answer:** Proprietary for now. `LICENSE` reserves all rights, and every module uses `"license": "SEE LICENSE IN LICENSE"`.
 
 ## Legal
 

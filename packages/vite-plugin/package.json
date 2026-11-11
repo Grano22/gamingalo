@@ -2,6 +2,7 @@
   "name": "@gamingalo/vite-plugin",
   "version": "0.1.0",
   "description": "Adds installed Gamingalo plugin packages to the SDK at build time",
+  "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://grano22.github.io/gamingalo/docs/plugins",
   "bugs": {
     "url": "https://github.com/Grano22/gamingalo/issues"
@@ -25,6 +26,7 @@
   },
   "files": [
     "CHANGELOG.md",
+    "LICENSE",
     "changelogs",
     "client.d.ts",
     "dist"

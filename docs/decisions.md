@@ -40,4 +40,4 @@ Status meanings:
 | D-30 | Game skeleton | Decided | The skeleton is a separate repository, which `gamingalo create` clones. It must show current SDK practice, so SDK changes that affect games update it in step. It supports Claude Code, Codex, OpenCode and pi, with one source of skills and a basic-memory graph. | CLI-012, XC-022 |
 | D-31 | Changelog limits | Decided | Each module's `CHANGELOG.md` keeps at most 12 versions. Older ones move to `changelogs/CHANGELOG.<from>.to.<to>.md`, and `CHANGELOG.md` continues from the newest. | XC-023 |
 | D-32 | Releases | Decided | One module per release, from a `<module>-v<version>` tag. Public modules publish to npm as `@gamingalo/*` with provenance, and every release's notes come from its changelog section. CLI releases attach standalone binaries. | XC-023 |
-| D-33 | Documentation | Decided | Fumadocs with a small design system, Lit Grid, as a static site on GitHub Pages, deployed on every push to `main`. | XC-024 |
+| D-33 | Documentation | Decided | Fumadocs with a small design system, Lit Grid, as a static site on GitHub Pages, deployed on every push to `master`. | XC-024 |

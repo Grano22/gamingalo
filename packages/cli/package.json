@@ -2,6 +2,7 @@
   "name": "@gamingalo/cli",
   "version": "0.2.0",
   "description": "Publish and manage Gamingalo games",
+  "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://grano22.github.io/gamingalo/docs/cli",
   "bugs": {
     "url": "https://github.com/Grano22/gamingalo/issues"
@@ -17,6 +18,7 @@
   },
   "files": [
     "CHANGELOG.md",
+    "LICENSE",
     "changelogs",
     "dist",
     "schemas"

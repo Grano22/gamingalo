@@ -2,6 +2,7 @@
   "name": "@gamingalo/contracts",
   "version": "0.5.0",
   "description": "API request and response schemas shared by Gamingalo services and clients",
+  "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://grano22.github.io/gamingalo/docs",
   "bugs": {
     "url": "https://github.com/Grano22/gamingalo/issues"
@@ -24,6 +25,7 @@
   },
   "files": [
     "CHANGELOG.md",
+    "LICENSE",
     "changelogs",
     "dist"
   ],

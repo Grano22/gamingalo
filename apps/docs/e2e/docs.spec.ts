@@ -37,7 +37,7 @@ test('changelog pages show each module’s current version', async ({ page }) =>
   await page.goto('docs/changelogs/sdk/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('@gamingalo/sdk');
   await expect(page.getByRole('heading', { name: /0\.14\.0/ })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'changelogs/' })).toHaveAttribute('href', /github\.com\/Grano22\/gamingalo\/tree\/main\/packages\/sdk\/changelogs/);
+  await expect(page.getByRole('link', { name: 'changelogs/' })).toHaveAttribute('href', /github\.com\/Grano22\/gamingalo\/tree\/master\/packages\/sdk\/changelogs/);
 });
 
 test('unknown pages show the not-found page', async ({ page }) => {

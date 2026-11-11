@@ -2,6 +2,7 @@
   "name": "@gamingalo/errors",
   "version": "0.7.0",
   "description": "Error codes and error type shared by the Gamingalo SDK, backend and CLI",
+  "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://grano22.github.io/gamingalo/docs/sdk/errors",
   "bugs": {
     "url": "https://github.com/Grano22/gamingalo/issues"
@@ -23,6 +24,7 @@
   },
   "files": [
     "CHANGELOG.md",
+    "LICENSE",
     "changelogs",
     "dist"
   ],

@@ -17,7 +17,7 @@ for (const group of ['packages', 'apps']) {
     // The page title replaces the file's own heading, and links to archives point at GitHub.
     const body = readFileSync(changelog, 'utf8')
       .replace(/^# .*\n/, '')
-      .replaceAll('](changelogs/)', `](https://github.com/Grano22/gamingalo/tree/main/${group}/${id}/changelogs)`);
+      .replaceAll('](changelogs/)', `](https://github.com/Grano22/gamingalo/tree/master/${group}/${id}/changelogs)`);
     // JSON strings are valid YAML, so names such as @gamingalo/sdk need no further escaping.
     const frontmatter = `title: ${JSON.stringify(name)}\ndescription: ${JSON.stringify(`Release notes for ${name}.`)}`;
     pages.set(`${id}.md`, `---\n${frontmatter}\n---\n${body}`);

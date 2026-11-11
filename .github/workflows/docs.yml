@@ -1,9 +1,9 @@
 name: Docs
 
-# Builds the documentation and publishes it to GitHub Pages on every push to main.
+# Builds the documentation and publishes it to GitHub Pages on every push to master.
 on:
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
 
 permissions:

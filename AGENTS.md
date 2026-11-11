@@ -59,7 +59,7 @@ Published packages are `@gamingalo/errors`, `@gamingalo/contracts`, `@gamingalo/
 
 ## Documentation (D-33)
 
-`apps/docs` is the documentation site, built with Fumadocs and deployed to GitHub Pages on every push to `main`.
+`apps/docs` is the documentation site, built with Fumadocs and deployed to GitHub Pages on every push to `master`, the default branch.
 
 * A change to public behavior updates the matching page in `apps/docs/content/docs/` in the same piece of work.
 * Changelog pages are generated from each module's `CHANGELOG.md`. Don't edit them by hand.

@@ -2,6 +2,7 @@
   "name": "@gamingalo/sdk",
   "version": "0.14.0",
   "description": "Gamingalo SDK for game makers",
+  "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://grano22.github.io/gamingalo/docs/sdk",
   "bugs": {
     "url": "https://github.com/Grano22/gamingalo/issues"
@@ -27,6 +28,7 @@
   },
   "files": [
     "CHANGELOG.md",
+    "LICENSE",
     "changelogs",
     "dist"
   ],

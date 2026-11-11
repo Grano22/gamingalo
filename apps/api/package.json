@@ -3,6 +3,7 @@
   "version": "0.3.2",
   "private": true,
   "description": "Gamingalo web services",
+  "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/main.ts",
