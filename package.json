@@ -15,7 +15,7 @@
     "changelog:check": "node tools/changelog.mjs check",
     "changelog:rotate": "node tools/changelog.mjs rotate",
     "changelog:notes": "node tools/changelog.mjs notes",
-    "test:tools": "node --test tools/",
+    "test:tools": "node --test \"tools/*.test.mjs\"",
     "release:tag": "node tools/release-tag.mjs"
   },
   "devDependencies": {
