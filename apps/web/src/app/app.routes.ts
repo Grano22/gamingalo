@@ -14,6 +14,17 @@ export const routes: Routes = [
     loadComponent: () => import('./slices/platform-status/status.page').then((module) => module.StatusPage),
   },
   {
+    path: 'play/:gameId',
+    title: 'Play | Gamingalo',
+    loadComponent: () => import('./slices/play/play.page').then((module) => module.PlayPage),
+  },
+  {
+    path: 'creator',
+    title: 'Creator | Gamingalo',
+    canActivate: [requireAccount],
+    loadComponent: () => import('./slices/creator/creator.page').then((module) => module.CreatorPage),
+  },
+  {
     path: 'sign-in',
     title: 'Sign in | Gamingalo',
     loadComponent: () => import('./slices/sign-in/sign-in.page').then((module) => module.SignInPage),

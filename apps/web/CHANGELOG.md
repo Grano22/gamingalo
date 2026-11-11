@@ -2,6 +2,14 @@
 
 All notable changes to `@gamingalo/web` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-11-11
+
+### Added
+
+* The home page lists live games.
+* Game player: plays a game from its own origin in a sandboxed frame, and gives it a play token when it asks.
+* Creator page: API tokens, shown once and revocable, and games with their versions, preview links and a way to make a version live.
+
 ## [0.2.0] - 2026-11-11
 
 ### Added

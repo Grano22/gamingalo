@@ -50,7 +50,7 @@ Game makers need to publish games safely, and players need to play them without 
 * [x] AC-5: Game responses carry the security headers above, and only live versions are served.
 * [x] AC-6: API tokens are shown once, stored hashed, revocable, and need a registered account.
 * [x] AC-7: Play tokens give each game a different player ID, expire, and only work from game origins.
-* [ ] AC-8: A game published with the CLI plays inside the platform in Chromium, Firefox and WebKit, and can't read the platform's cookies or storage.
+* [x] AC-8: A game published with the CLI plays inside the platform in Chromium, Firefox and WebKit, and can't read the platform's cookies or storage.
 
 ## Security and privacy
 
@@ -65,8 +65,8 @@ Game makers need to publish games safely, and players need to play them without 
 ## Tasks
 
 * [x] Registry, uploads and serving
-* [ ] Game player and creator portal
-* [ ] CLI publishing
+* [x] Game player and creator portal
+* [x] CLI publishing
 * [ ] Object storage and CDN
 * [ ] Malware scanning
 * [ ] Unused file cleanup

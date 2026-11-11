@@ -14,7 +14,7 @@
 | `versioning_0.1.0` | XC-021 | Done |
 | `backend-core_0.1.0` | BE-001, XC-006 | In progress |
 | `identity_0.1.0` | BE-002, WEB-004, XC-008, XC-009, XC-010 | In progress |
-| `sdk-platform-bridge_0.1.0` | SDK-002, SDK-011 | In progress |
+| `sdk-platform-bridge_0.1.0` | SDK-002, SDK-011 | Done |
 | `game-hosting_0.1.0` | BE-003, BE-004, BE-005, WEB-003, XC-002 | In progress |
 | `game-memory_0.1.0` | SDK-003, SDK-004, SDK-005, SDK-006, BE-006, WEB-006 | In progress |
 | `sdk-device-settings_0.1.0` | SDK-007, SDK-008 | Done |

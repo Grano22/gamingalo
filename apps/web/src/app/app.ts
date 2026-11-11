@@ -29,6 +29,9 @@ import { SessionStore } from './shared/session/session.store';
           <svg lucideActivity aria-hidden="true"></svg>
           Status
         </a>
+        @if (session.account()?.kind === 'registered') {
+          <a routerLink="/creator" routerLinkActive="font-semibold" ariaCurrentWhenActive="page">Creator</a>
+        }
         <span class="ml-auto">
           @if (session.account(); as account) {
             <a routerLink="/account" routerLinkActive="font-semibold" ariaCurrentWhenActive="page" class="flex items-center gap-2">

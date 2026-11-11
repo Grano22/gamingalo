@@ -1,7 +1,7 @@
 # SDK platform bridge
 
 * **Version:** 0.1.0
-* **Status:** In progress
+* **Status:** Done
 * **Phase:** P1
 * **Requirements:** SDK-002, SDK-011
 * **Depends on:** `identity_0.1.0`, `game-hosting_0.1.0`
@@ -35,10 +35,10 @@ Rules:
 
 ## Acceptance criteria
 
-* [ ] AC-1: Tokens from other origins, other windows or with bad fields are ignored.
-* [ ] AC-2: The profile is read with the token, without cookies or referrer, and the token is refreshed after expiry or a 401.
-* [ ] AC-3: Mock mode can simulate a player.
-* [ ] AC-4: A game published with the CLI shows the player's name inside the platform in Chromium, Firefox and WebKit, and can't reach the platform page.
+* [x] AC-1: Tokens from other origins, other windows or with bad fields are ignored.
+* [x] AC-2: The profile is read with the token, without cookies or referrer, and the token is refreshed after expiry or a 401.
+* [x] AC-3: Mock mode can simulate a player.
+* [x] AC-4: A game published with the CLI shows the player's name inside the platform in Chromium, Firefox and WebKit, and can't reach the platform page.
 
 ## Test plan
 
@@ -47,8 +47,8 @@ Rules:
 
 ## Tasks
 
-* [ ] Bridge and player API
-* [ ] Platform side in the web player
+* [x] Bridge and player API
+* [x] Platform side in the web player
 
 ## Open questions
 
