@@ -16,8 +16,9 @@ describe('loadConfig', () => {
   });
 
   it('refuses production without a database', () => {
-    expect(() => loadConfig({ NODE_ENV: 'production' })).toThrow(/DATABASE_URL is required/);
-    expect(loadConfig({ NODE_ENV: 'production', DATABASE_URL: 'postgres://u:p@h/db' }).databaseUrl).toBeDefined();
+    const web = { WEB_ORIGIN: 'https://play.example', RP_ID: 'play.example' };
+    expect(() => loadConfig({ NODE_ENV: 'production', ...web })).toThrow(/DATABASE_URL is required/);
+    expect(loadConfig({ NODE_ENV: 'production', DATABASE_URL: 'postgres://u:p@h/db', ...web }).databaseUrl).toBeDefined();
   });
 
   it('rejects invalid values', () => {
@@ -32,5 +33,34 @@ describe('loadConfig', () => {
     } catch (error) {
       expect((error as Error).message).not.toContain('hunter2');
     }
+  });
+});
+
+describe('identity configuration', () => {
+  const production = { NODE_ENV: 'production', DATABASE_URL: 'postgres://u:p@h/db' };
+
+  it('uses insecure cookies only outside production', () => {
+    expect(loadConfig({}).cookieSecure).toBe(false);
+    expect(loadConfig({ ...production, WEB_ORIGIN: 'https://play.example', RP_ID: 'play.example' }).cookieSecure).toBe(
+      true,
+    );
+  });
+
+  it('refuses insecure settings in production', () => {
+    const secure = { ...production, WEB_ORIGIN: 'https://play.example', RP_ID: 'play.example' };
+    expect(() => loadConfig({ ...secure, COOKIE_SECURE: 'false' })).toThrow(/COOKIE_SECURE/);
+    expect(() => loadConfig({ ...production, WEB_ORIGIN: 'http://play.example', RP_ID: 'play.example' })).toThrow(
+      /https/,
+    );
+  });
+
+  it('needs an RP ID that matches the web origin', () => {
+    expect(loadConfig({ WEB_ORIGIN: 'https://play.example.com', RP_ID: 'example.com' }).rpId).toBe('example.com');
+    expect(() => loadConfig({ WEB_ORIGIN: 'https://play.example.com', RP_ID: 'evil.com' })).toThrow(/RP_ID/);
+    expect(() => loadConfig({ WEB_ORIGIN: 'https://notexample.com', RP_ID: 'example.com' })).toThrow(/RP_ID/);
+  });
+
+  it('normalizes the web origin', () => {
+    expect(loadConfig({ WEB_ORIGIN: 'http://localhost:4200/some/path' }).webOrigin).toBe('http://localhost:4200');
   });
 });

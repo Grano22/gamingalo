@@ -1,12 +1,20 @@
 import { healthResponseSchema, readyResponseSchema } from '@gamingalo/contracts';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, LogLevel } from 'fastify';
 import type { Queryable } from '../../db/database';
 import { unavailable } from '../../errors';
 
-export function registerHealthRoutes(app: FastifyInstance, database: Queryable): void {
-  app.get('/health', { logLevel: 'warn' }, async () => healthResponseSchema.parse({ status: 'ok' }));
+const LEVELS: readonly string[] = ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'];
 
-  app.get('/ready', { logLevel: 'warn' }, async () => {
+/** Health checks run often, so they log at `warn` at most. A quieter service setting still wins. */
+function quieter(configured: string): LogLevel {
+  return (LEVELS.indexOf(configured) > LEVELS.indexOf('warn') ? configured : 'warn') as LogLevel;
+}
+
+export function registerHealthRoutes(app: FastifyInstance, database: Queryable, logLevel: string): void {
+  const options = { logLevel: quieter(logLevel) };
+  app.get('/health', options, async () => healthResponseSchema.parse({ status: 'ok' }));
+
+  app.get('/ready', options, async () => {
     try {
       await database.query('SELECT 1');
     } catch (error) {

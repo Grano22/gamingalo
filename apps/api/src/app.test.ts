@@ -3,6 +3,8 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildApp, SERVICE_VERSION } from './app';
 import { loadConfig } from './config';
+import { migrate } from './db/migrate';
+import { migrations } from './db/migrations';
 import { createPgliteDatabase } from './db/pglite';
 import type { Database } from './db/database';
 
@@ -14,11 +16,13 @@ describe('routes', () => {
 
   beforeAll(async () => {
     database = await createPgliteDatabase();
+    await migrate(database, migrations);
     app = await buildApp({ config, database });
     app.get('/test/boom', async () => {
       throw new Error('secret database password in message');
     });
     app.post('/test/echo', async () => ({ status: 'ok' }));
+    app.post('/v1/test/echo', async () => ({ status: 'ok' }));
   });
 
   afterAll(async () => {
@@ -59,8 +63,8 @@ describe('routes', () => {
   it('returns the error shape for malformed input', async () => {
     const response = await app.inject({
       method: 'POST',
-      url: '/test/echo',
-      headers: { 'content-type': 'application/json' },
+      url: '/v1/test/echo',
+      headers: { 'content-type': 'application/json', origin: config.webOrigin },
       payload: '{bad json',
     });
     expect(response.statusCode).toBe(400);
@@ -90,6 +94,7 @@ describe('readiness', () => {
       query: vi.fn(async () => {
         throw new Error('connection refused to db-host:5432');
       }),
+      exec: vi.fn(),
       transaction: vi.fn(),
       close: vi.fn(async () => {}),
     };

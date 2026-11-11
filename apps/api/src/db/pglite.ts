@@ -9,6 +9,7 @@ export async function createPgliteDatabase(): Promise<Database> {
       const result = await database.query<Row>(sql, params);
       return { rows: result.rows };
     },
+    exec: async (sql) => void (await database.exec(sql)),
     transaction: async (action) => {
       const result = await database.transaction((tx) =>
         action({
@@ -16,6 +17,7 @@ export async function createPgliteDatabase(): Promise<Database> {
             const response = await tx.query<Row>(sql, params);
             return { rows: response.rows };
           },
+          exec: async (sql) => void (await tx.exec(sql)),
         }),
       );
       return result as Awaited<ReturnType<typeof action>>;

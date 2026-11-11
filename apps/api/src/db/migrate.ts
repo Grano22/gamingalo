@@ -25,7 +25,7 @@ export async function migrate(database: Database, migrations: readonly Migration
 
     for (const migration of migrations) {
       if (applied.has(migration.id)) continue;
-      await tx.query(migration.sql);
+      await tx.exec(migration.sql);
       await tx.query('INSERT INTO schema_migrations (id) VALUES ($1)', [migration.id]);
       newlyApplied.push(migration.id);
     }

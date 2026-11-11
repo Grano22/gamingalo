@@ -1,6 +1,9 @@
 /** What the service needs from a database, so that slices don't depend on a specific driver. */
 export interface Queryable {
+  /** Runs one statement, with parameters. */
   query<Row = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<{ rows: Row[] }>;
+  /** Runs a script of several statements, with no parameters. For migrations. */
+  exec(sql: string): Promise<void>;
 }
 
 export interface Database extends Queryable {

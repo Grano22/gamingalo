@@ -37,6 +37,12 @@ describe('migrate', () => {
     expect(applied).toEqual(['002']);
   });
 
+  it('applies a migration with several statements', async () => {
+    await migrate(database, [{ id: '001', sql: 'CREATE TABLE a (id INT); CREATE TABLE b (id INT);' }]);
+    expect(await tableExists('a')).toBe(true);
+    expect(await tableExists('b')).toBe(true);
+  });
+
   it('rolls everything back when one fails, and can run again after a fix', async () => {
     const good = { id: '001', sql: 'CREATE TABLE a (id INT)' };
 

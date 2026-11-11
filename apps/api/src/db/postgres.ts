@@ -8,6 +8,8 @@ export function createPostgresDatabase(connectionString: string): Database {
       const result = await pool.query(sql, params);
       return { rows: result.rows as Row[] };
     },
+    // With no parameters, `pg` uses the simple protocol, which allows several statements.
+    exec: async (sql) => void (await pool.query(sql)),
     transaction: async (action) => {
       const client = await pool.connect();
       try {
@@ -17,6 +19,7 @@ export function createPostgresDatabase(connectionString: string): Database {
             const response = await client.query(sql, params);
             return { rows: response.rows as Row[] };
           },
+          exec: async (sql) => void (await client.query(sql)),
         });
         await client.query('COMMIT');
         return result;

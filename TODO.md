@@ -16,6 +16,10 @@ Questions waiting for an answer from the project owner. See the rule in `AGENTS.
 * [x] ~~Which foreign API should extended online features use first: the Gamingalo backend, or an adapter that lets game makers plug in their own?~~ **Answer:** Build the web platform and web services first and connect to them, but also support custom servers with different play modes, matchmaking and so on. A Server SDK for hosting is planned for later. (D-23)
 * [x] ~~Did "coations API ... i18n" mean a Localization API? It's being built that way (D-25).~~ **Answer:** Yes, and it should also detect geolocation, the user's language, keyboard layout and so on.
 
+## Legal
+
+* [ ] Can under 13s play as guests without parental consent, in each market we launch in? This is the current default (D-26).
+
 ## Manual checks
 
 * [ ] Does switching tabs fire `suspend` and `resume` in real Chromium, Firefox and Safari? Automated tests can only simulate it (AC-4 in `sdk-initiation_0.0.1`).
