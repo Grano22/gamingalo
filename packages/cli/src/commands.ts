@@ -9,6 +9,7 @@ import {
   type Channel,
 } from '@gamingalo/contracts';
 import { createApiClient } from './api';
+import { createProject, DEFAULT_TEMPLATE } from './create';
 import { CliError } from './errors';
 import { buildManifest, loadProject } from './project';
 import { keyPaths, loadCredentials, loadSigningKey, removeCredentials, saveCredentials, writePrivateFile, DEFAULT_API_URL } from './settings';
@@ -38,6 +39,25 @@ export async function login(runtime: Runtime, options: { apiUrl?: string; tokenS
   await api.get('/v1/creator/games');
   const path = await saveCredentials({ apiUrl, token }, runtime.env);
   runtime.output.info(`Signed in. Credentials saved to ${path}, readable only by you.`);
+}
+
+export async function create(
+  runtime: Runtime,
+  directory: string,
+  options: { template?: string; ref?: string; id?: string; title?: string; git: boolean },
+) {
+  const template = options.template ?? runtime.env['GAMINGALO_TEMPLATE'] ?? DEFAULT_TEMPLATE;
+  const project = await createProject({ directory, template, git: options.git, ...pick(options) });
+  runtime.output.info(`Created ${project.title} (${project.id}) in ${project.root}.`);
+  runtime.output.info('Next: cd into it, then run npm install and npm run dev. AI agents start from AGENTS.md.');
+}
+
+function pick(options: { ref?: string; id?: string; title?: string }) {
+  return {
+    ...(options.ref ? { ref: options.ref } : {}),
+    ...(options.id ? { id: options.id } : {}),
+    ...(options.title ? { title: options.title } : {}),
+  };
 }
 
 export async function logout(runtime: Runtime) {

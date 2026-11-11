@@ -31,6 +31,17 @@ export function createProgram(runtime: Runtime): Command {
     .option('--api-url <url>', 'the web services address')
     .action((options) => commands.login(runtime, options));
 
+  program
+    .command('create')
+    .description('Start a new game from the Gamingalo game skeleton')
+    .argument('<directory>', 'where to create the game')
+    .option('--id <id>', 'the game ID (default: from the folder name)')
+    .option('--title <title>', 'the game title')
+    .option('--template <repository>', 'a git URL or path to clone instead of the official skeleton')
+    .option('--ref <ref>', 'a branch or tag of the template')
+    .option('--no-git', "don't start a git repository")
+    .action((directory, options) => commands.create(runtime, directory, options));
+
   program.command('logout').description('Remove the saved token from this computer').action(() => commands.logout(runtime));
 
   dir(program.command('game:create').description('Register the game in gamingalo.json')).action((options) =>

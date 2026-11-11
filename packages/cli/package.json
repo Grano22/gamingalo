@@ -1,13 +1,20 @@
 {
   "name": "@gamingalo/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Publish and manage Gamingalo games",
   "type": "module",
-  "bin": { "gamingalo": "./dist/cli.js" },
-  "files": ["dist"],
-  "engines": { "node": ">=22" },
+  "bin": {
+    "gamingalo": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "schemas"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "build": "vite build && chmod +x dist/cli.js",
+    "build": "vite build && node scripts/copy-schemas.mjs && chmod +x dist/cli.js",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint ."
@@ -20,5 +27,15 @@
     "@gamingalo/api": "*",
     "@gamingalo/contracts": "*",
     "@types/node": "^24.0.0"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist",
+          "{projectRoot}/schemas"
+        ]
+      }
+    }
   }
 }
