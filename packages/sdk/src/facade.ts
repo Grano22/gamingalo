@@ -8,6 +8,7 @@ import type { Features } from './features/discovery';
 import type { Environment, EnvironmentInfo } from './features/environment';
 import type { Localization } from './features/localization';
 import type { Network } from './features/network';
+import type { Player } from './features/player';
 import type { GamingaloPlugin, PluginContext } from './features/plugins';
 import { createPreferences, type PreferenceChange, type Preferences } from './features/preferences';
 import { createSaves, type SaveBackend, type Saves } from './features/saves';
@@ -74,6 +75,8 @@ export interface GamingaloSdk {
   readonly network: Network;
   /** Needs `modules: ['localization']` in `init`, or throws `FEATURE_UNAVAILABLE`. */
   readonly localization: Localization;
+  /** Needs `platform` in `init`, or throws `FEATURE_UNAVAILABLE`. */
+  readonly player: Player;
   /** Returns the API of a plugin listed in `init`. Throws `FEATURE_UNAVAILABLE` for any other plugin. */
   use<Api extends object>(plugin: GamingaloPlugin<Api>): Api;
   /** Subscribes to an event and returns a function that unsubscribes. */
@@ -98,6 +101,8 @@ export interface SdkParts {
   /** `undefined` unless the module was loaded. */
   accessibility: Accessibility | undefined;
   network: Network;
+  /** `undefined` without a platform. */
+  player: Player | undefined;
   /** `undefined` unless the module was loaded. Builds the API, given a way to report locale changes. */
   localization: ((onLocaleChange: (locale: string) => void) => Localization) | undefined;
   filters: CanvasFilterLayers;
@@ -232,6 +237,7 @@ export function buildSdk<Extra extends object = object>(
   const storage = guard(parts.storage);
   const accessibility = parts.accessibility && guard(parts.accessibility);
   const network = guard(parts.network);
+  const player = parts.player && guard(parts.player);
   const localization = parts.localization && guard(parts.localization((locale) => emit('locale', locale)));
   const needsModule = (name: string): never => {
     throw new GamingaloError('FEATURE_UNAVAILABLE', `Add '${name}' to Gamingalo.init({ modules }) to use it.`);
@@ -293,6 +299,10 @@ export function buildSdk<Extra extends object = object>(
     },
     get localization() {
       return localization ?? needsModule('localization');
+    },
+    get player() {
+      if (!player) throw new GamingaloError('FEATURE_UNAVAILABLE', 'Add platform: { origin } to Gamingalo.init() to use the player.');
+      return player;
     },
     on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void {
       if (!hasOwn(EVENT_NAMES, event) || typeof handler !== 'function') {

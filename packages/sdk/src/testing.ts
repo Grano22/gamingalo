@@ -23,6 +23,7 @@ import type { EnvironmentInfo } from './features/environment';
 import { createLocalization, type GeolocationResult, type KeyboardInfo } from './features/localization';
 import { createSessionId, type Network, type NetworkMeasurement } from './features/network';
 import { createMemorySaveBackend } from './features/saves';
+import type { PlayerProfile } from './features/player';
 import type { GamingaloPlugin } from './features/plugins';
 import { createMemoryStore } from './features/settings';
 import { createMockStorageInfo } from './features/storage';
@@ -46,6 +47,8 @@ export interface MockOptions {
   localization?: { languages?: string[]; timeZone?: string; keyboard?: KeyboardInfo; geolocation?: GeolocationResult };
   /** Built-in modules, as in `Gamingalo.init`. Without them, `sdk.localization` and `sdk.accessibility` throw. */
   modules?: readonly SdkModule[];
+  /** A signed-in player. Without it, `sdk.player` throws, as it does outside the platform. */
+  player?: Partial<PlayerProfile>;
   /** Plugins to test. */
   plugins?: ReadonlyArray<GamingaloPlugin<object>>;
 }
@@ -184,7 +187,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   const own = snapshotOwn(options);
   if (!own) throw invalid('Expected an object.');
   for (const name of Object.keys(own)) {
-    if (!['gameId', 'connection', 'features', 'environment', 'network', 'plugins', 'localization', 'modules'].includes(name)) throw invalid(`Unknown option ${name}.`);
+    if (!['gameId', 'connection', 'features', 'environment', 'network', 'plugins', 'localization', 'modules', 'player'].includes(name)) throw invalid(`Unknown option ${name}.`);
   }
 
   const connection = own['connection'] ?? 'online';
@@ -236,7 +239,8 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
       realm: freeze({ origin: 'mock', embedded: false, canvas: undefined }),
       connection: connection as ConnectionState,
       suspended: false,
-      hasFeature: (name) => features.has(name) || modules.includes(name as SdkModule),
+      hasFeature: (name) =>
+        features.has(name) || modules.includes(name as SdkModule) || (name === 'player' && own['player'] !== undefined),
       readEnvironment: async () => clone({ ...MOCK_ENVIRONMENT, ...overrides }),
       store,
       cache: createMemoryCache(),
@@ -245,6 +249,20 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
       storage: createMockStorageInfo(),
       accessibility: modules.includes('accessibility') ? accessibility.api : undefined,
       network,
+      player:
+        own['player'] === undefined
+          ? undefined
+          : {
+              available: () => true,
+              profile: async () =>
+                freeze({
+                  playerId: '00000000-0000-4000-8000-000000000000',
+                  displayName: 'Player',
+                  minor: false,
+                  guest: false,
+                  ...snapshotOwn(own['player']),
+                }) as PlayerProfile,
+            },
       localization: modules.includes('localization')
         ? (onLocaleChange) =>
             createLocalization({

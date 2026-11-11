@@ -12,6 +12,8 @@ export interface GamingaloConfig {
   plugins?: ReadonlyArray<GamingaloPlugin<object>>;
   /** Built-in modules to load, which keeps them out of the core download for games that don't use them. */
   modules?: readonly SdkModule[];
+  /** The Gamingalo platform that embeds this game, for `sdk.player`. Messages from any other origin are ignored. */
+  platform?: { origin: string };
 }
 
 export type SdkModule = 'localization' | 'accessibility';
@@ -21,6 +23,7 @@ export interface ResolvedConfig {
   readonly realm: RealmOptions | undefined;
   readonly plugins: readonly ResolvedPlugin[];
   readonly modules: readonly SdkModule[];
+  readonly platformOrigin: string | undefined;
 }
 
 /** The original object is kept as the key for `sdk.use`, and its fields are read once. */
@@ -32,7 +35,7 @@ export interface ResolvedPlugin {
 
 const GAME_ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,62}$/;
 const PLUGIN_NAME_PATTERN = /^[a-z0-9@][a-z0-9@/_-]{0,127}$/;
-const CONFIG_KEYS = freeze({ __proto__: null, gameId: true, realm: true, plugins: true, modules: true });
+const CONFIG_KEYS = freeze({ __proto__: null, gameId: true, realm: true, plugins: true, modules: true, platform: true });
 const MODULES = freeze({ __proto__: null, localization: true, accessibility: true });
 const REALM_KEYS = freeze({ __proto__: null, origins: true, frame: true, canvas: true });
 const FRAMES = freeze({ __proto__: null, top: true, embedded: true, any: true });
@@ -119,6 +122,25 @@ function resolveModules(input: unknown): readonly SdkModule[] {
   return freeze(modules);
 }
 
+function resolvePlatformOrigin(input: unknown): string | undefined {
+  if (input === undefined) return undefined;
+  const platform = snapshotOwn(input);
+  if (!platform) throw invalid('platform: expected an object');
+  assertKnownKeys(platform, freeze({ __proto__: null, origin: true }), 'platform.');
+  const origin = platform['origin'];
+  let parsed: URL | undefined;
+  try {
+    parsed = typeof origin === 'string' ? new URL(origin) : undefined;
+  } catch {
+    parsed = undefined;
+  }
+  // Exactly an origin, so that comparing it with a message's origin is exact.
+  if (!parsed || (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') || parsed.origin !== origin) {
+    throw invalid('platform.origin: expected an origin such as https://play.example');
+  }
+  return parsed.origin;
+}
+
 /**
  * Hand-written rather than using Zod, because this code must not read inherited properties
  * and Zod's parsers do. See D-22.
@@ -137,5 +159,6 @@ export function resolveConfig(input: unknown): ResolvedConfig {
     realm: resolveRealmOptions(config['realm']),
     plugins: resolvePlugins(config['plugins']),
     modules: resolveModules(config['modules']),
+    platformOrigin: resolvePlatformOrigin(config['platform']),
   });
 }

@@ -39,6 +39,7 @@ export type {
   PreferenceDefinition,
   Preferences,
 } from './features/preferences';
+export type { Player, PlayerProfile } from './features/player';
 export type { GamingaloPlugin, PluginContext } from './features/plugins';
 export type { SaveInfo, SaveRecord, SaveSchema, Saves } from './features/saves';
 export type { SessionMemory } from './features/session';

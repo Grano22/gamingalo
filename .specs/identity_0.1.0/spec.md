@@ -3,7 +3,7 @@
 * **Version:** 0.1.0
 * **Status:** In progress
 * **Phase:** P1
-* **Requirements:** BE-002, SDK-002, SDK-011, WEB-004, XC-008, XC-009, XC-010
+* **Requirements:** BE-002, WEB-004, XC-008, XC-009, XC-010
 * **Depends on:** `backend-core_0.1.0`, `web-shell_0.1.0`
 * **Decisions:** D-18, D-23, D-26
 
@@ -24,8 +24,7 @@ Players need to start playing straight away, keep their progress, and stay in co
 ### Later increments
 
 * OAuth sign-in and account linking (BE-002).
-* Scoped game tokens and the SDK auth bridge (SDK-002), which need game hosting.
-* Profiles in the SDK (SDK-011).
+* Scoped game tokens and the SDK auth bridge, moved to `sdk-platform-bridge_0.1.0` (SDK-002, SDK-011).
 * Removing abandoned guest accounts.
 
 ## Behavior
@@ -83,8 +82,8 @@ Rules:
 * [x] Accounts, sessions and passkeys in the API
 * [x] Web pages
 * [ ] OAuth
-* [ ] Game tokens and SDK auth bridge
-* [ ] Guest account cleanup
+* [x] Game tokens and SDK auth bridge, in `game-hosting_0.1.0` and `sdk-platform-bridge_0.1.0`
+* [x] Guest account cleanup, in `game-hosting_0.1.0`
 * [ ] Legal review of age handling
 
 ## Open questions

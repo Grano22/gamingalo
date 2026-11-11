@@ -8,6 +8,7 @@ import { readEnvironment, watchDevices } from './features/environment';
 import { getBrowserFiles } from './features/files';
 import { isPageHidden, watchPageLifecycle } from './features/lifecycle';
 import { createNetwork, createSessionId } from './features/network';
+import { createPlatformBridge } from './features/player';
 import { getBrowserSaveBackend } from './features/saves';
 import { getBrowserStore } from './features/settings';
 import { createBrowserStorageInfo } from './features/storage';
@@ -50,7 +51,7 @@ const nativeFetch = globalThis.fetch;
 const capturedFetch: typeof fetch = (input, init) => nativeFetch(input, init);
 
 async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
-  const { gameId, realm: realmOptions, plugins, modules } = resolveConfig(config);
+  const { gameId, realm: realmOptions, plugins, modules, platformOrigin } = resolveConfig(config);
   if (running) {
     throw new GamingaloError(
       'SDK_ALREADY_INITIALIZED',
@@ -81,11 +82,13 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
   const files = getBrowserFiles(gameId);
   const filters = createCanvasFilterLayers(realm.canvas);
   const accessibility = accessibilityModule?.createBrowserAccessibility(realm.canvas, filters);
+  const bridge = platformOrigin ? createPlatformBridge({ platformOrigin, fetch: capturedFetch }) : undefined;
   const available = (name: string) =>
     (name === 'saves' && !!saveBackend) ||
     (name === 'files' && !!files) ||
     (name === 'accessibility' && !!accessibility) ||
-    (name === 'localization' && !!localizationModule);
+    (name === 'localization' && !!localizationModule) ||
+    (name === 'player' && !!bridge?.api.available());
 
   return buildSdk(
     {
@@ -102,6 +105,7 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       storage: createBrowserStorageInfo(),
       accessibility: accessibility?.api,
       network: createNetwork(capturedFetch, createSessionId()),
+      player: bridge?.api,
       localization:
         localizationModule &&
         ((onLocaleChange) =>
@@ -124,6 +128,7 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       if (accessibilityModule && accessibility) {
         controls.addCleanup(accessibilityModule.watchAccessibilityPreferences(controls.accessibilityChanged));
       }
+      if (bridge) controls.addCleanup(bridge.stop);
       controls.addCleanup(filters.dispose);
       if (accessibility) controls.addCleanup(accessibility.dispose);
       return {};
