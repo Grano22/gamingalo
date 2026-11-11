@@ -18,7 +18,7 @@
 | `game-memory_0.1.0` | SDK-003, SDK-004, SDK-005, SDK-006, BE-006, WEB-006 | In progress |
 | `sdk-device-settings_0.1.0` | SDK-007, SDK-008 | Done |
 | `wrapper-adapters_0.1.0` | WRAP-001, WRAP-002, WRAP-003 | Not started |
-| `cli-publish_0.1.0` | CLI-001, CLI-002, CLI-003, CLI-004, CLI-005, CLI-006, CLI-008 | Not started |
+| `cli-publish_0.1.0` | CLI-001, CLI-002, CLI-003, CLI-004, CLI-005, CLI-006, CLI-008 | In progress |
 | `web-shell_0.1.0` | WEB-001, WEB-002, WEB-005, XC-007, XC-017 | In progress |
 
 ## Order
