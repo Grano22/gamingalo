@@ -2,6 +2,15 @@
   "name": "@gamingalo/contracts",
   "version": "0.5.0",
   "description": "API request and response schemas shared by Gamingalo services and clients",
+  "homepage": "https://grano22.github.io/gamingalo/docs",
+  "bugs": {
+    "url": "https://github.com/Grano22/gamingalo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Grano22/gamingalo.git",
+    "directory": "packages/contracts"
+  },
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -14,6 +23,8 @@
     "./gamingalo.schema.json": "./dist/gamingalo.schema.json"
   },
   "files": [
+    "CHANGELOG.md",
+    "changelogs",
     "dist"
   ],
   "scripts": {
@@ -21,6 +32,10 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint ."
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "dependencies": {
     "zod": "^4.6.7"

@@ -2,20 +2,45 @@
   "name": "@gamingalo/vite-plugin",
   "version": "0.1.0",
   "description": "Adds installed Gamingalo plugin packages to the SDK at build time",
+  "homepage": "https://grano22.github.io/gamingalo/docs/plugins",
+  "bugs": {
+    "url": "https://github.com/Grano22/gamingalo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Grano22/gamingalo.git",
+    "directory": "packages/vite-plugin"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./client": { "types": "./client.d.ts" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./client.d.ts"
+    }
   },
-  "files": ["dist", "client.d.ts"],
-  "engines": { "node": ">=22" },
+  "files": [
+    "CHANGELOG.md",
+    "changelogs",
+    "client.d.ts",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint ."
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "peerDependencies": {
     "vite": ">=6"

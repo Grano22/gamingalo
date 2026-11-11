@@ -2,6 +2,15 @@
   "name": "@gamingalo/sdk",
   "version": "0.14.0",
   "description": "Gamingalo SDK for game makers",
+  "homepage": "https://grano22.github.io/gamingalo/docs/sdk",
+  "bugs": {
+    "url": "https://github.com/Grano22/gamingalo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Grano22/gamingalo.git",
+    "directory": "packages/sdk"
+  },
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -16,13 +25,21 @@
       "import": "./dist/testing.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "CHANGELOG.md",
+    "changelogs",
+    "dist"
+  ],
   "scripts": {
     "build": "vite build && node scripts/check-size.mjs",
     "test": "vitest run",
     "e2e": "playwright test",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint ."
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "devDependencies": {
     "@gamingalo/errors": "*"

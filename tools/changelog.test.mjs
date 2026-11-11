@@ -75,3 +75,31 @@ test('refuses a version with no notes', () => {
   writeFileSync(join(module.dir, 'CHANGELOG.md'), '# Changelog\n\n## [0.1.0] - 2026-11-11\n');
   assert.match(checkModule(module).join(), /0.1.0 has no notes/);
 });
+
+test('reads release tags, and refuses others', async () => {
+  const { parseReleaseTag } = await import('./release-info.mjs');
+  assert.deepEqual(parseReleaseTag('sdk-v0.14.0'), { module: 'sdk', version: '0.14.0' });
+  assert.deepEqual(parseReleaseTag('plugin-screen-preferences-v1.0.0-beta.1'), {
+    module: 'plugin-screen-preferences',
+    version: '1.0.0-beta.1',
+  });
+  assert.throws(() => parseReleaseTag('v1.0.0'), /isn't a release tag/);
+  assert.throws(() => parseReleaseTag('sdk-1.0.0'), /isn't a release tag/);
+});
+
+test('matches a tag to the real modules in this repository', async () => {
+  const { releaseInfo } = await import('./release-info.mjs');
+  const root = new URL('..', import.meta.url).pathname;
+  const sdk = JSON.parse(readFileSync(join(root, 'packages/sdk/package.json'), 'utf8'));
+  assert.deepEqual(releaseInfo(root, `sdk-v${sdk.version}`), {
+    module: 'sdk',
+    name: '@gamingalo/sdk',
+    version: sdk.version,
+    dir: 'packages/sdk',
+    publish: 'true',
+    prerelease: 'false',
+  });
+  assert.equal(releaseInfo(root, `api-v${JSON.parse(readFileSync(join(root, 'apps/api/package.json'), 'utf8')).version}`).publish, 'false');
+  assert.throws(() => releaseInfo(root, 'sdk-v99.0.0'), /but @gamingalo\/sdk is/);
+  assert.throws(() => releaseInfo(root, 'nope-v1.0.0'), /no module called nope/);
+});

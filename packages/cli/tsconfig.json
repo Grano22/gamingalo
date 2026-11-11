@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "lib": ["ES2022"], "types": ["node"] },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts", "vite.sea.config.ts"]
 }

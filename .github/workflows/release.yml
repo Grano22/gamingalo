@@ -1,0 +1,144 @@
+name: Release
+
+# Push a tag such as `sdk-v0.14.0` (see `npm run release:tag`) to release one module.
+on:
+  push:
+    tags: ['*-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Verify and pack
+    runs-on: ubuntu-latest
+    outputs:
+      module: ${{ steps.tag.outputs.module }}
+      name: ${{ steps.tag.outputs.name }}
+      version: ${{ steps.tag.outputs.version }}
+      dir: ${{ steps.tag.outputs.dir }}
+      publish: ${{ steps.tag.outputs.publish }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - id: tag
+        run: node tools/release-info.mjs "$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+      - run: npm run changelog:check
+      - run: npx nx run-many -t lint typecheck test build --projects="${{ steps.tag.outputs.name }}"
+      - name: Release notes from the changelog
+        run: node tools/changelog.mjs notes "${{ steps.tag.outputs.module }}" "${{ steps.tag.outputs.version }}" > release-notes.md
+      - name: Pack
+        if: steps.tag.outputs.publish == 'true'
+        run: npm pack --pack-destination "$GITHUB_WORKSPACE" --workspace "${{ steps.tag.outputs.name }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: |
+            release-notes.md
+            *.tgz
+          if-no-files-found: error
+
+  binaries:
+    name: CLI binary (${{ matrix.target }})
+    needs: prepare
+    if: needs.prepare.outputs.module == 'cli'
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: linux-x64 }
+          - { os: ubuntu-24.04-arm, target: linux-arm64 }
+          - { os: macos-latest, target: macos-arm64 }
+          - { os: macos-13, target: macos-x64 }
+          - { os: windows-latest, target: windows-x64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # Single executable applications need Node.js 25.5 or later, for --build-sea.
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      - run: npx nx run @gamingalo/cli:build
+      - run: npm run build:binary --workspace @gamingalo/cli
+      - name: Smoke test
+        shell: bash
+        run: packages/cli/dist-sea/gamingalo$([ "$RUNNER_OS" = Windows ] && echo .exe) --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: packages/cli/dist-sea/gamingalo*
+          if-no-files-found: error
+
+  publish:
+    name: Publish and release
+    needs: [prepare, binaries]
+    if: always() && needs.prepare.result == 'success' && (needs.binaries.result == 'success' || needs.binaries.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Publish to npm
+        if: needs.prepare.outputs.publish == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NAME: ${{ needs.prepare.outputs.name }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+        run: |
+          # Safe to rerun: a version already on npm isn't published again.
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION is already on npm."
+          else
+            npm publish artifacts/release/*.tgz --provenance --access public $([ "$PRERELEASE" = true ] && echo --tag next)
+          fi
+      - name: Package CLI binaries
+        if: needs.prepare.outputs.module == 'cli'
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          mkdir -p assets
+          for dir in artifacts/binary-*; do
+            target="${dir#artifacts/binary-}"
+            if [ -f "$dir/gamingalo.exe" ]; then
+              (cd "$dir" && zip -q "$GITHUB_WORKSPACE/assets/gamingalo-$VERSION-$target.zip" gamingalo.exe)
+            else
+              chmod +x "$dir/gamingalo"
+              tar -czf "assets/gamingalo-$VERSION-$target.tar.gz" -C "$dir" gamingalo
+            fi
+          done
+          (cd assets && sha256sum * > SHA256SUMS)
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ needs.prepare.outputs.name }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+        run: |
+          files=(artifacts/release/*.tgz)
+          [ -d assets ] && files+=(assets/*)
+          [ -e "${files[0]}" ] || files=()
+          gh release create "$GITHUB_REF_NAME" "${files[@]}" \
+            --title "$NAME $VERSION" \
+            --notes-file artifacts/release/release-notes.md \
+            --verify-tag \
+            $([ "$PRERELEASE" = true ] && echo --prerelease)

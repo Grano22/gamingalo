@@ -2,6 +2,19 @@
   "name": "@gamingalo/plugin-screen-preferences",
   "version": "0.2.0",
   "description": "Player-adjustable brightness, contrast, saturation and gamma for Gamingalo games",
+  "keywords": [
+    "gamingalo",
+    "gamingalo-plugin"
+  ],
+  "homepage": "https://grano22.github.io/gamingalo/docs/plugins/screen-preferences",
+  "bugs": {
+    "url": "https://github.com/Grano22/gamingalo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Grano22/gamingalo.git",
+    "directory": "packages/plugin-screen-preferences"
+  },
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -13,6 +26,8 @@
     }
   },
   "files": [
+    "CHANGELOG.md",
+    "changelogs",
     "dist"
   ],
   "scripts": {
@@ -22,6 +37,14 @@
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint ."
   },
+  "gamingalo": {
+    "formatVersion": 1,
+    "sdk": ">=0.14.0 <1.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "peerDependencies": {
     "@gamingalo/sdk": ">=0.14.0 <1.0.0"
   },
@@ -29,13 +52,5 @@
     "@gamingalo/contracts": "*",
     "@gamingalo/sdk": "*",
     "@types/node": "^24.19.2"
-  },
-  "gamingalo": {
-    "formatVersion": 1,
-    "sdk": ">=0.14.0 <1.0.0"
-  },
-  "keywords": [
-    "gamingalo",
-    "gamingalo-plugin"
-  ]
+  }
 }

@@ -2,11 +2,22 @@
   "name": "@gamingalo/cli",
   "version": "0.2.0",
   "description": "Publish and manage Gamingalo games",
+  "homepage": "https://grano22.github.io/gamingalo/docs/cli",
+  "bugs": {
+    "url": "https://github.com/Grano22/gamingalo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Grano22/gamingalo.git",
+    "directory": "packages/cli"
+  },
   "type": "module",
   "bin": {
     "gamingalo": "./dist/cli.js"
   },
   "files": [
+    "CHANGELOG.md",
+    "changelogs",
     "dist",
     "schemas"
   ],
@@ -17,7 +28,12 @@
     "build": "vite build && node scripts/copy-schemas.mjs && chmod +x dist/cli.js",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build:binary": "vite build --config vite.sea.config.ts && node scripts/build-binary.mjs"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "dependencies": {
     "commander": "^15.1.0",
