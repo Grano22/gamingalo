@@ -1,6 +1,6 @@
 {
   "name": "@gamingalo/web",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Gamingalo web platform",
   "type": "module",
@@ -23,6 +23,7 @@
     "@lucide/angular": "^1.66.0",
     "@ngrx/signals": "^22.0.1",
     "@primeuix/themes": "^3.1.0",
+    "@simplewebauthn/browser": "^14.0.0",
     "primeng": "^22.1.4",
     "rxjs": "^7.8.0",
     "tailwindcss-primeui": "^0.6.1",

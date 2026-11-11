@@ -1,4 +1,5 @@
 import type { Routes } from '@angular/router';
+import { requireAccount } from './shared/session/require-account.guard';
 
 // Each slice is loaded on demand, and owns its own page, state and API calls.
 export const routes: Routes = [
@@ -11,6 +12,17 @@ export const routes: Routes = [
     path: 'status',
     title: 'Service status | Gamingalo',
     loadComponent: () => import('./slices/platform-status/status.page').then((module) => module.StatusPage),
+  },
+  {
+    path: 'sign-in',
+    title: 'Sign in | Gamingalo',
+    loadComponent: () => import('./slices/sign-in/sign-in.page').then((module) => module.SignInPage),
+  },
+  {
+    path: 'account',
+    title: 'Your account | Gamingalo',
+    canActivate: [requireAccount],
+    loadComponent: () => import('./slices/account/account.page').then((module) => module.AccountPage),
   },
   { path: '**', redirectTo: '' },
 ];

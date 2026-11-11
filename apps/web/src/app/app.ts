@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { LucideActivity, LucideGamepad2 } from '@lucide/angular';
+import { LucideActivity, LucideCircleUser, LucideGamepad2 } from '@lucide/angular';
+import { SessionStore } from './shared/session/session.store';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideGamepad2, LucideActivity],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideGamepad2, LucideActivity, LucideCircleUser],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a
@@ -28,6 +29,16 @@ import { LucideActivity, LucideGamepad2 } from '@lucide/angular';
           <svg lucideActivity aria-hidden="true"></svg>
           Status
         </a>
+        <span class="ml-auto">
+          @if (session.account(); as account) {
+            <a routerLink="/account" routerLinkActive="font-semibold" ariaCurrentWhenActive="page" class="flex items-center gap-2">
+              <svg lucideCircleUser aria-hidden="true"></svg>
+              {{ account.displayName }}
+            </a>
+          } @else {
+            <a routerLink="/sign-in" routerLinkActive="font-semibold" ariaCurrentWhenActive="page">Sign in</a>
+          }
+        </span>
       </nav>
     </header>
     <main id="main" tabindex="-1" class="mx-auto max-w-5xl p-4">
@@ -35,4 +46,6 @@ import { LucideActivity, LucideGamepad2 } from '@lucide/angular';
     </main>
   `,
 })
-export class App {}
+export class App {
+  protected readonly session = inject(SessionStore);
+}

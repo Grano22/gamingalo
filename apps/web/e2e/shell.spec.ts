@@ -30,11 +30,13 @@ test('keyboard users can skip to the main content', async ({ page, browserName }
   // WebKit only tabs to links when a macOS setting is on, which isn't something tests control.
   test.skip(browserName === 'webkit');
   await page.goto('/');
+  // The app shows once it knows who is signed in, so wait for it before pressing Tab.
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
 });
 
-for (const path of ['/', '/status']) {
+for (const path of ['/', '/status', '/sign-in']) {
   test(`${path} has no automatically detectable WCAG 2.2 AA violations`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
