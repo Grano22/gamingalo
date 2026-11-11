@@ -1,7 +1,11 @@
 import { defineConfig } from 'vitest/config';
+import { readFileSync } from 'node:fs';
 import dts from 'vite-plugin-dts';
 
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
+
 export default defineConfig({
+  define: { __SDK_VERSION__: JSON.stringify(version) },
   plugins: [
     dts({
       exclude: ['**/*.test.ts', 'src/test-helpers.ts', 'e2e/**', '*.config.ts'],

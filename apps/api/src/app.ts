@@ -19,7 +19,7 @@ import { registerMetaRoutes } from './slices/meta/routes';
 import { registerPasskeyRoutes } from './slices/passkeys/routes';
 import { registerSessionRoutes } from './slices/sessions/routes';
 
-export const SERVICE_VERSION = '0.3.0';
+export const SERVICE_VERSION = '0.3.1';
 
 export interface AppDependencies {
   config: Config;

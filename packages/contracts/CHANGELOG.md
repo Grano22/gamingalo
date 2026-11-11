@@ -2,6 +2,18 @@
 
 All notable changes to `@gamingalo/contracts` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-11-11
+
+### Added
+
+* `FORMAT_VERSIONS`, `createMigrationChain()` and `readFormatVersion()`, for deterministic migrations between format versions.
+* `schemaVersion` in `gamingalo.json`, and `parseGameConfig()`, which migrates older files before validating them.
+* `formats` in the service metadata response.
+
+### Changed
+
+* **Breaking:** manifests need `formatVersion`, which is part of the signed bytes.
+
 ## [0.3.0] - 2026-11-11
 
 ### Added

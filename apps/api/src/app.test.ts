@@ -43,7 +43,12 @@ describe('routes', () => {
 
   it('reports service metadata', async () => {
     const meta = metaResponseSchema.parse((await app.inject({ url: '/v1/meta' })).json());
-    expect(meta).toEqual({ service: 'gamingalo-api', version: SERVICE_VERSION, apiVersion: 'v1' });
+    expect(meta).toEqual({
+      service: 'gamingalo-api',
+      version: SERVICE_VERSION,
+      apiVersion: 'v1',
+      formats: { gameConfig: 1, manifest: 1, api: 1 },
+    });
   });
 
   it('returns the error shape for unknown routes', async () => {

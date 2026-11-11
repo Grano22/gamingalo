@@ -20,7 +20,7 @@ describe('StatusPage', () => {
     expect(screen.getByRole('status').textContent).toContain('Checking');
 
     await flushRequest(http, '/api/ready', { status: 'ready' });
-    await flushRequest(http, '/api/v1/meta', { service: 'gamingalo-api', version: '1.2.3', apiVersion: 'v1' });
+    await flushRequest(http, '/api/v1/meta', { service: 'gamingalo-api', version: '1.2.3', apiVersion: 'v1', formats: { gameConfig: 1, manifest: 1, api: 1 } });
 
     await waitFor(() => expect(screen.getByRole('status').textContent).toContain('Available'));
     expect(screen.getByRole('status').textContent).toContain('gamingalo-api 1.2.3');

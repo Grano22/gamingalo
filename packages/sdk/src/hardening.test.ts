@@ -99,11 +99,29 @@ describe('public surface', () => {
   });
 });
 
+describe('versions', () => {
+  it('reports the SDK version and records the storage format once per game', async () => {
+    const { SDK_VERSION, STORAGE_FORMAT_VERSION } = await import('./index');
+    expect(Gamingalo.version).toBe(SDK_VERSION);
+    expect(SDK_VERSION).toMatch(/^\d+\.\d+\.\d+/);
+    localStorage.removeItem('gamingalo:my-game:format');
+    await startSdk();
+    expect(localStorage.getItem('gamingalo:my-game:format')).toBe(String(STORAGE_FORMAT_VERSION));
+  });
+
+  it('never overwrites a format written by another SDK version', async () => {
+    localStorage.setItem('gamingalo:my-game:format', '7');
+    await startSdk();
+    expect(localStorage.getItem('gamingalo:my-game:format')).toBe('7');
+    localStorage.removeItem('gamingalo:my-game:format');
+  });
+});
+
 describe('one reference', () => {
   it('offers no way to look up the running reference', async () => {
     await startSdk();
     expect('instance' in Gamingalo).toBe(false);
-    expect(Object.keys(Gamingalo)).toEqual(['init']);
+    expect(Object.keys(Gamingalo)).toEqual(['init', 'version']);
     expect(Object.keys(entry)).not.toContain('instance');
   });
 

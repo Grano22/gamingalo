@@ -35,6 +35,10 @@ Every change to a module's shipped behavior goes in the same commit as these two
 
 Tests, internal refactoring and docs alone don't need a bump.
 
+## Format versions
+
+Everything stored or exchanged has an integer format version, listed in `FORMAT_VERSIONS` in `@gamingalo/contracts` (D-28). A change that older readers can't handle bumps that version, and adds a migration step to the format's chain in the same commit. Steps must be deterministic, and must not change their input. Never change a format without its version.
+
 ## Open questions
 
 Questions for the project owner go in `TODO.md`. Once one is answered, keep it in the file, strike it through and add the answer:

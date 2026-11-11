@@ -37,6 +37,7 @@ const FILES: Record<string, string> = {
 
 function manifestFor(version: string, files = FILES, gameId = 'my-game'): Manifest {
   return {
+    formatVersion: 1,
     gameId,
     version,
     entry: 'index.html',
@@ -403,11 +404,7 @@ describe('maintenance', () => {
     const keep = browser(service);
     await keep.post('/v1/accounts/guest', { ageBand: '16plus' });
     const abandoned = browser(service);
-    await abandoned.post('/v1/accounts/guest', { ageBand: '16plus' });
-    const { rows } = await service.database.query<{ id: string }>(
-      "SELECT a.id FROM accounts a JOIN sessions s ON s.account_id = a.id WHERE a.kind = 'guest' ORDER BY a.created_at DESC LIMIT 1",
-    );
-    const abandonedId = (rows[0] as { id: string }).id;
+    const abandonedId = ((await abandoned.post('/v1/accounts/guest', { ageBand: '16plus' })).json() as { id: string }).id;
     await service.database.query("UPDATE sessions SET expires_at = now() - interval '1 second' WHERE account_id = $1", [abandonedId]);
     await service.database.query("UPDATE accounts SET created_at = now() - interval '31 days' WHERE kind = 'guest'");
     await service.database.query("UPDATE accounts SET created_at = now() - interval '31 days' WHERE id = $1", [owner.accountId]);

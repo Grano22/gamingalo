@@ -104,7 +104,7 @@ test('AC-4: a second script cannot get the running reference', async ({ page }) 
     }
     return { code, keys: Object.keys(again.Gamingalo), globals: 'sdk' in window || 'gamingalo' in window };
   });
-  expect(result).toEqual({ code: 'SDK_ALREADY_INITIALIZED', keys: ['init'], globals: false });
+  expect(result).toEqual({ code: 'SDK_ALREADY_INITIALIZED', keys: ['init', 'version'], globals: false });
 });
 
 test('AC-5: a canvas from another iframe and wrong realms are rejected', async ({ page }) => {

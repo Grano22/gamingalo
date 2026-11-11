@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import { createMigrationChain, FORMAT_VERSIONS, readFormatVersion } from './versions';
 
 /** Lowercase letters, digits and single hyphens. `--` is reserved for preview addresses. */
 export const gameIdSchema = z
@@ -75,6 +76,8 @@ export const budgetsSchema = z.strictObject({
 /** `gamingalo.json`, which describes a game for the CLI. */
 export const gameConfigSchema = z.strictObject({
   $schema: z.string().optional(),
+  /** The format of this file. Older files are migrated with `gamingalo migrate`. */
+  schemaVersion: z.literal(FORMAT_VERSIONS.gameConfig).default(FORMAT_VERSIONS.gameConfig),
   id: gameIdSchema,
   title: z.string().trim().min(1).max(60),
   version: semverSchema,
@@ -86,6 +89,16 @@ export const gameConfigSchema = z.strictObject({
 });
 export type GameConfig = z.infer<typeof gameConfigSchema>;
 
+/** Steps between `gamingalo.json` versions. Empty until the format first changes. */
+export const gameConfigMigrations = createMigrationChain('gamingalo.json', FORMAT_VERSIONS.gameConfig);
+
+/** Migrates a `gamingalo.json` of any supported version to the current one, then validates it. */
+export function parseGameConfig(raw: unknown): GameConfig {
+  const from = readFormatVersion(raw, 'schemaVersion');
+  const migrated = gameConfigMigrations.migrate(raw, from) as Record<string, unknown>;
+  return gameConfigSchema.parse({ ...migrated, schemaVersion: FORMAT_VERSIONS.gameConfig });
+}
+
 export const manifestFileSchema = z.strictObject({
   path: filePathSchema,
   size: z.number().int().nonnegative(),
@@ -94,6 +107,7 @@ export const manifestFileSchema = z.strictObject({
 
 export const manifestSchema = z
   .strictObject({
+    formatVersion: z.literal(FORMAT_VERSIONS.manifest),
     gameId: gameIdSchema,
     version: semverSchema,
     entry: filePathSchema,
@@ -111,7 +125,14 @@ export function canonicalManifest(manifest: Manifest): string {
   const files = [...manifest.files]
     .sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
     .map((file) => ({ path: file.path, size: file.size, sha256: file.sha256 }));
-  return JSON.stringify({ gameId: manifest.gameId, version: manifest.version, entry: manifest.entry, files });
+  // The format version is signed too, so a manifest can't be relabelled as another format.
+  return JSON.stringify({
+    formatVersion: manifest.formatVersion,
+    gameId: manifest.gameId,
+    version: manifest.version,
+    entry: manifest.entry,
+    files,
+  });
 }
 
 export const createGameRequestSchema = z.strictObject({ id: gameIdSchema, title: z.string().trim().min(1).max(60) });

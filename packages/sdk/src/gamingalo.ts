@@ -14,7 +14,27 @@ import { createBrowserStorageInfo } from './features/storage';
 import { createObject, defineProperty, freeze } from './primordials';
 import { resolveRealm } from './realm';
 
+/** The SDK's own version, set at build time. */
+export const SDK_VERSION: string = __SDK_VERSION__;
+
+/**
+ * The format of everything the SDK keeps in the browser. It's written once per game, so that a
+ * later SDK knows which version wrote the stored data, and can migrate it step by step.
+ */
+export const STORAGE_FORMAT_VERSION = 1;
+
+function recordStorageFormat(store: ReturnType<typeof getBrowserStore>, gameId: string): void {
+  try {
+    const key = `gamingalo:${gameId}:format`;
+    if (store && store.getItem(key) === null) store.setItem(key, String(STORAGE_FORMAT_VERSION));
+  } catch {
+    // Blocked or full storage. The format can still be told apart, as data written without a marker is version 1.
+  }
+}
+
 export interface GamingaloEntry {
+  /** The SDK's version. */
+  readonly version: string;
   /**
    * Starts the SDK and returns the only reference to it in this realm. There is no way to look it
    * up later, so keep it private. Rejects with `SDK_ALREADY_INITIALIZED` while it's running, which
@@ -56,6 +76,7 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
   const [accessibilityModule, localizationModule] = loaded;
 
   const store = getBrowserStore();
+  recordStorageFormat(store, gameId);
   const saveBackend = getBrowserSaveBackend(gameId);
   const files = getBrowserFiles(gameId);
   const filters = createCanvasFilterLayers(realm.canvas);
@@ -112,6 +133,7 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
 
 const entry = createObject(null) as GamingaloEntry;
 defineProperty(entry, 'init', { __proto__: null, value: freeze(init), enumerable: true } as PropertyDescriptor);
+defineProperty(entry, 'version', { __proto__: null, value: SDK_VERSION, enumerable: true } as PropertyDescriptor);
 
 /** The SDK entry point. It's frozen and sets no globals. */
 export const Gamingalo: GamingaloEntry = freeze(entry);

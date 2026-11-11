@@ -2,6 +2,13 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.13.0] - 2026-11-11
+
+### Added
+
+* `Gamingalo.version`, `SDK_VERSION` and `STORAGE_FORMAT_VERSION`.
+* The storage format is recorded once per game, so later versions can migrate stored data.
+
 ## [0.12.0] - 2026-11-11
 
 ### Changed

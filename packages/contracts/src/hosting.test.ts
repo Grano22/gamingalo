@@ -44,6 +44,7 @@ describe('file paths', () => {
 
 describe('manifest', () => {
   const manifest = {
+    formatVersion: 1 as const,
     gameId: 'my-game',
     version: '1.0.0',
     entry: 'index.html',
@@ -63,12 +64,21 @@ describe('manifest', () => {
     const reversed = { ...manifest, files: [...manifest.files].reverse() };
     expect(canonicalManifest(manifestSchema.parse(reversed))).toBe(canonicalManifest(manifestSchema.parse(manifest)));
     expect(canonicalManifest(manifestSchema.parse(manifest))).toContain('"files":[{"path":"a.js"');
+    expect(canonicalManifest(manifestSchema.parse(manifest)).startsWith('{"formatVersion":1,')).toBe(true);
+  });
+
+  it('needs the current format version', () => {
+    expect(manifestSchema.safeParse({ ...manifest, formatVersion: 2 }).success).toBe(false);
+    const withoutVersion: Record<string, unknown> = { ...manifest };
+    delete withoutVersion['formatVersion'];
+    expect(manifestSchema.safeParse(withoutVersion).success).toBe(false);
   });
 });
 
 describe('gamingalo.json', () => {
   it('fills in defaults', () => {
     expect(gameConfigSchema.parse({ id: 'my-game', title: 'My game', version: '1.0.0' })).toMatchObject({
+      schemaVersion: 1,
       dir: 'dist',
       entry: 'index.html',
     });

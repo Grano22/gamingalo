@@ -20,6 +20,8 @@ export const metaResponseSchema = z.strictObject({
   service: z.string(),
   version: z.string(),
   apiVersion: z.literal('v1'),
+  /** The format versions this service reads and writes, so clients can tell what to migrate. */
+  formats: z.strictObject({ gameConfig: z.number().int(), manifest: z.number().int(), api: z.number().int() }),
 });
 export type MetaResponse = z.infer<typeof metaResponseSchema>;
 
@@ -83,3 +85,4 @@ export const passkeyVerifyRequestSchema = z.strictObject({
 export type PasskeyVerifyRequest = z.infer<typeof passkeyVerifyRequestSchema>;
 
 export * from './hosting';
+export * from './versions';

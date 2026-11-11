@@ -2,6 +2,13 @@
 
 All notable changes to `@gamingalo/api` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-11-11
+
+### Added
+
+* `GET /v1/meta` reports supported format versions.
+* Manifests carry a signed format version.
+
 ## [0.3.0] - 2026-11-11
 
 ### Added

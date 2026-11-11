@@ -50,5 +50,5 @@ export {
   type Settings,
 } from './features/settings';
 export type { StorageEstimate, StorageInfo } from './features/storage';
-export { Gamingalo, type GamingaloEntry } from './gamingalo';
+export { Gamingalo, SDK_VERSION, STORAGE_FORMAT_VERSION, type GamingaloEntry } from './gamingalo';
 export type { RealmFrame, RealmInfo, RealmOptions } from './realm';

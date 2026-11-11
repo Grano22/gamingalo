@@ -11,6 +11,7 @@
 | `sdk-modules_0.1.0` | SDK-036, SDK-040, PLG-001 | Done |
 | `sdk-localization_0.1.0` | SDK-019 | Done |
 | `sdk-connection_0.1.0` | SDK-041 | Not started |
+| `versioning_0.1.0` | XC-021 | Done |
 | `backend-core_0.1.0` | BE-001, XC-006 | In progress |
 | `identity_0.1.0` | BE-002, SDK-002, SDK-011, WEB-004, XC-008, XC-009, XC-010 | In progress |
 | `game-hosting_0.1.0` | BE-003, BE-004, BE-005, WEB-003, XC-002 | In progress |
