@@ -5,6 +5,8 @@ import dts from 'vite-plugin-dts';
 const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
 export default defineConfig({
+  // A cache per project, because Vitest processes running in parallel clear a shared one.
+  cacheDir: 'node_modules/.vite',
   define: { __SDK_VERSION__: JSON.stringify(version) },
   plugins: [
     dts({

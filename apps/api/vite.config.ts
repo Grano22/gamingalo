@@ -13,6 +13,8 @@ const external = [
 ];
 
 export default defineConfig({
+  // A cache per project, because Vitest processes running in parallel clear a shared one.
+  cacheDir: 'node_modules/.vite',
   build: {
     ssr: 'src/main.ts',
     target: 'node22',
