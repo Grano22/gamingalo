@@ -1,0 +1,23 @@
+---
+title: Publishing
+description: How games are signed, uploaded and served.
+---
+
+1. Create an API token on the creator page. It's shown once, and can be revoked.
+2. `gamingalo game:keys:create` makes an Ed25519 signing key, keeps the private key on your machine, and registers the public key.
+3. `gamingalo game:publish` lists every file with its size and SHA-256 hash, signs that manifest, and uploads only the files the platform doesn't have.
+4. The platform checks each file against the signed manifest. A version is ready once every file is present, and never changes after that.
+
+## Channels
+
+Each game has `production` and `preview` channels. Promoting an older version is a rollback.
+
+## Hosting
+
+Games are served from their own origin, `<game>.<games domain>`, and previews from `preview--<game>`. Every game page is sent with a strict Content Security Policy:
+
+* Only the platform can embed it.
+* It can contact only itself and the Gamingalo API.
+* No inline scripts, `eval`, plugins or forms.
+
+Bundle everything with Vite, and keep within the budgets in `gamingalo.json`.

@@ -1,0 +1,19 @@
+---
+title: Errors
+description: Error codes shared by the SDK, the CLI and the web services.
+---
+
+Every failure is a `GamingaloError` with a stable `code` and a `retryable` flag. Check the code, never the message:
+
+```ts
+import { isGamingaloError } from '@gamingalo/sdk';
+
+try {
+  await sdk.saves.write('progress', data);
+} catch (error) {
+  if (isGamingaloError(error) && error.code === 'STORAGE_QUOTA_EXCEEDED') showStorageFull();
+  else throw error;
+}
+```
+
+Codes are never renamed or reused. They're defined in `@gamingalo/errors`.

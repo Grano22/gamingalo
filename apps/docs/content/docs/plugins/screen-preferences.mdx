@@ -1,0 +1,15 @@
+---
+title: Screen preferences
+description: Player-adjustable brightness, contrast, saturation and gamma.
+---
+
+```ts
+import { screenPreferences, type ScreenPreferences } from '@gamingalo/plugin-screen-preferences';
+
+const screen: ScreenPreferences = sdk.use(plugin);
+screen.setBrightness(1.2);
+screen.setGamma(1.4);
+screen.reset();
+```
+
+Values are saved between sessions, and apply to the canvas bound with `realm.canvas`. They combine with accessibility filters instead of replacing them. Games can narrow the limits, as long as each range includes 1, which leaves the picture unchanged.

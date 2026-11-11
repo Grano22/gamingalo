@@ -1,0 +1,5 @@
+.next/
+out/
+next-env.d.ts
+# Generated from each module's CHANGELOG.md by scripts/sync-changelogs.mjs.
+content/docs/changelogs/*.md

@@ -1,0 +1,45 @@
+{
+  "name": "@gamingalo/docs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gamingalo documentation site",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/sync-changelogs.mjs && next dev",
+    "build": "node scripts/sync-changelogs.mjs && next build",
+    "typecheck": "node scripts/sync-changelogs.mjs && next typegen && tsc --noEmit",
+    "lint": "eslint .",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "fumadocs-core": "16.18.4",
+    "fumadocs-mdx": "15.5.3",
+    "fumadocs-ui": "16.18.4",
+    "next": "16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "postcss": "^8.5.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/out",
+          "{projectRoot}/.next"
+        ]
+      },
+      "e2e": {
+        "dependsOn": []
+      }
+    }
+  }
+}

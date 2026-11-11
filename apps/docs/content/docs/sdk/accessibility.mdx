@@ -1,0 +1,21 @@
+---
+title: Accessibility
+description: Make canvas games usable with keyboards and screen readers.
+---
+
+Needs `modules: ['accessibility']` in `init`. A canvas is invisible to assistive technology, so mirror its controls:
+
+```ts
+sdk.accessibility.mirror([
+  { id: 'title', role: 'heading', label: 'Main menu' },
+  { id: 'start', role: 'button', label: 'Start game', onActivate: start },
+]);
+sdk.accessibility.announce('Level 2 reached');
+sdk.accessibility.setCanvasFilter('high-contrast');
+```
+
+* Labels are set as text, never parsed as HTML.
+* Focus stays on an item while the mirror updates, as long as its `id` stays the same.
+* `preferences()` reports reduced motion, contrast, forced colors and reduced transparency, and the `accessibility` event reports changes.
+
+Test what you expose with `sdk.mock.accessibility` in the [mock SDK](/docs/sdk/testing).

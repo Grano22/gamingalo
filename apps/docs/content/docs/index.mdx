@@ -1,0 +1,24 @@
+---
+title: Introduction
+description: Build web games on the Gamingalo SDK, and publish them to the platform with one command.
+---
+
+Gamingalo is a set of tools for making and publishing web games:
+
+<TileGrid>
+  <Tile title="SDK" lit href="/docs/sdk">The library your game uses: saves, preferences, localization, accessibility, the player and more.</Tile>
+  <Tile title="Plugins" href="/docs/plugins">Optional SDK features, added by installing a package.</Tile>
+  <Tile title="CLI" href="/docs/cli">Creates games from the skeleton, then validates, signs and publishes them.</Tile>
+</TileGrid>
+
+## How the pieces fit
+
+1. `gamingalo create` starts a game from the **game skeleton**, a small working game with tests and AI agent configuration.
+2. The game uses the **SDK**, which runs entirely in the browser. Only online features, such as the signed-in player, talk to a server.
+3. `gamingalo game:publish` signs every file and uploads it. The **platform** serves each game from its own origin, so games can't reach each other or the player's account.
+
+## Principles
+
+* **The browser is untrusted.** Anything that must be trusted, such as currency, scores or entitlements, is decided on a server. The SDK raises the cost of tampering, but never promises to stop it.
+* **Accessible by default.** The SDK exposes canvas games to keyboards and screen readers, and never blocks assistive technology.
+* **Versioned everything.** Every stored or exchanged format has a version, and moves between versions with deterministic migrations.

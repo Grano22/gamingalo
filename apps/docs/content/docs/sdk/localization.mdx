@@ -1,0 +1,28 @@
+---
+title: Localization
+description: Messages, plurals, formatting, and language, region and keyboard detection.
+---
+
+Needs `modules: ['localization']` in `init`.
+
+```ts
+sdk.localization.addMessages('en', {
+  'coins.one': '{count} coin',
+  'coins.other': '{count} coins',
+});
+sdk.localization.t('coins', { count: 3 }); // "3 coins"
+sdk.localization.setLocale('pl');           // saved for next time
+```
+
+* Lookup goes from the chosen locale, or each browser language, to its base language, then to the fallback (`en`). A missing message returns its key.
+* Plurals use the language's rules with the `count` parameter. Polish, for example, has `one`, `few` and `many`.
+* Messages are plain text. Never insert them as HTML.
+
+## Detection
+
+```ts
+const { language, region, timeZone, direction, keyboard } = await sdk.localization.detect();
+keyboard.layout; // 'qwerty' | 'qwertz' | 'azerty' | 'dvorak' | 'colemak' | 'other' | 'unknown'
+```
+
+`detect()` shows no prompts. Keyboard layout is only available in Chromium. Precise location needs `requestGeolocation()`, which can show a prompt, so call it in response to a player's action.

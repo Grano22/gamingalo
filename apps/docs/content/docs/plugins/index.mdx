@@ -1,0 +1,49 @@
+---
+title: Plugins
+description: Install a package, and it extends the SDK.
+---
+
+## Using a plugin
+
+```sh
+npm install @gamingalo/plugin-screen-preferences
+```
+
+That's all. `@gamingalo/vite-plugin` finds installed plugins and checks they support your SDK version. It passes them to `init` through `virtual:gamingalo-plugins`:
+
+```ts title="vite.config.ts"
+import { gamingalo } from '@gamingalo/vite-plugin';
+export default { plugins: [gamingalo()] };
+```
+
+Options go in `gamingalo.json`, and `false` turns a plugin off:
+
+```json title="gamingalo.json"
+{ "plugins": { "@gamingalo/plugin-screen-preferences": { "limits": { "brightness": { "min": 0.8, "max": 1.2 } } } } }
+```
+
+* Only `dependencies` count, because development dependencies don't ship with the game.
+* A plugin that doesn't support the installed SDK fails the build, naming both versions.
+
+## Writing a plugin
+
+```json title="package.json"
+{
+  "name": "my-gamingalo-plugin",
+  "gamingalo": { "formatVersion": 1, "sdk": ">=0.14.0 <1.0.0" },
+  "peerDependencies": { "@gamingalo/sdk": ">=0.14.0 <1.0.0" }
+}
+```
+
+```ts title="src/index.ts"
+import type { GamingaloPlugin } from '@gamingalo/sdk';
+
+export function gamingaloPlugin(options: { strength?: number } = {}): GamingaloPlugin<{ boost(): void }> {
+  return Object.freeze({
+    name: 'my-plugin',
+    setup: (context) => ({ boost: () => context.setCanvasFilter(`saturate(${options.strength ?? 1.5})`) }),
+  });
+}
+```
+
+`setup` receives a limited context: the game ID, realm, environment, its own preferences, a canvas filter layer and `addCleanup`. It never sees the SDK's internals.

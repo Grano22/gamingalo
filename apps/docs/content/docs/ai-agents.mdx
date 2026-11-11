@@ -1,0 +1,24 @@
+---
+title: AI coding agents
+description: How the game skeleton works with Claude Code, Codex, OpenCode and pi.
+---
+
+Games created from the skeleton share one set of instructions, skills and memory across agents:
+
+| Piece | Where | Read by |
+|---|---|---|
+| Instructions | `AGENTS.md` | Codex, OpenCode, pi, and Claude Code through `CLAUDE.md` |
+| Skills | `.agents/skills/` | Codex, OpenCode and pi directly, and Claude Code from `.claude/skills/` |
+| Memory | `docs/memory/` | Every agent, through the basic-memory MCP server |
+
+## Skills
+
+`gamingalo-sdk`, `gamingalo-saves`, `gamingalo-plugins`, `gamingalo-publish`, `gamingalo-testing` and `gamingalo-memory`. Edit them in `.agents/skills/`, then run `npm run ai:sync`.
+
+## Lookup order
+
+Agents look things up in this order: project memory, then skills, then the installed SDK's types and changelog, then the web. Installed types always match the installed version.
+
+## Secrets
+
+No configuration in the skeleton contains credentials. Tokens and signing keys stay in `~/.config/gamingalo/`, and model provider keys stay in each tool's own user folder.

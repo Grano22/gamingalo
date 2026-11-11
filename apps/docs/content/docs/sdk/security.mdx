@@ -1,0 +1,17 @@
+---
+title: Security
+description: What the SDK protects, and what it can't.
+---
+
+* `Gamingalo`, the SDK reference and every API are **frozen**, with no prototype, so they can't be overridden.
+* Internal code ignores **polluted prototypes**, and keeps its own copies of built-ins, so patching `Map` or `JSON` later can't see its state.
+* There's **one reference per page**, with no global and no lookup.
+* `realm` can restrict the SDK to specific `origins`, a `frame` type and a `canvas` from the same page.
+
+## Limits
+
+* The SDK must load first. Code that runs earlier can change the browser before the SDK starts.
+* Stored data and browser APIs can't be protected from code on the same origin.
+* Debuggers and browser extensions can inspect everything.
+
+Anything that must be trusted belongs on a server.

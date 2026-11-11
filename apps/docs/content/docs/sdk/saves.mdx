@@ -1,0 +1,36 @@
+---
+title: Saves
+description: Save slots in IndexedDB, with versioned formats and migrations.
+---
+
+```ts
+if (sdk.features.has('saves')) {
+  sdk.saves.configure({
+    version: 2,
+    migrations: { 1: (old: ProgressV1): ProgressV2 => ({ ...old, coins: 0 }) },
+  });
+  await sdk.saves.write('progress', { best: 10, coins: 3, logo: blob });
+  const save = await sdk.saves.read<ProgressV2>('progress');
+}
+```
+
+* Any value the browser can clone works, including Blobs and Files.
+* Reading an older save runs each migration in order, then stores the result. A failure rejects with `SAVE_MIGRATION_FAILED` and leaves the save unchanged.
+* A save from a newer game version rejects with `SAVE_VERSION_TOO_NEW`, so an old build can't damage newer data.
+* `features.has('saves')` is `false` where the browser blocks IndexedDB. Saves never fall back to memory silently, because the player would lose progress.
+
+## Changing the format
+
+1. Keep the old type, and add the new one.
+2. Bump `version`, and add a migration keyed by the **old** version.
+3. Test it: write an old save with the mock SDK, then read it.
+4. Never change a migration after its version has shipped.
+
+## Eviction and storage
+
+```ts
+if (await sdk.saves.wasEvicted()) showMessage('The browser removed your saves.');
+await sdk.storage.requestPersistence(); // after a meaningful action, because Firefox asks the player
+```
+
+<Callout type="warn">Saves are visible to and editable by the player. Keep purchases, currency and ranked results on a server.</Callout>

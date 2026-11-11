@@ -1,0 +1,116 @@
+/*
+ * Lit Grid: the Gamingalo design system.
+ * One idea runs through it: a 3 by 3 board where one square is lit, as in the game skeleton.
+ * Lit means "this is active or important". Everything else stays quiet.
+ */
+:root {
+  --gg-ink-950: #070b18;
+  --gg-ink-900: #0b1020;
+  --gg-ink-800: #141b33;
+  --gg-ink-700: #263257;
+  --gg-ink-300: #8a96c9;
+  --gg-paper: #f6f3ea;
+  --gg-paper-2: #efe9da;
+
+  /* Signal: what's lit. The deep shade keeps contrast on paper. */
+  --gg-signal: #ffd23f;
+  --gg-signal-deep: #7a4f00;
+  /* Pulse: links and focus. */
+  --gg-pulse: #4fd1ff;
+  --gg-pulse-deep: #005a7a;
+  --gg-success: #1f7a4d;
+  --gg-danger: #a3262c;
+
+  --gg-radius: 6px;
+  /* The notch: the top-left corner of a lit tile is cut, like a key on the board. */
+  --gg-notch: 10px;
+  --gg-space: 4px;
+}
+
+.dark {
+  --gg-success: #3ddc97;
+  --gg-danger: #ff8a8f;
+}
+
+.gg-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--gg-font-display);
+  font-weight: 700;
+}
+
+.gg-tile {
+  position: relative;
+  border: 1px solid var(--color-fd-border);
+  border-radius: var(--gg-radius);
+  background: var(--color-fd-card);
+  padding: calc(var(--gg-space) * 5);
+}
+
+.gg-tile[data-lit='true'] {
+  border-color: var(--color-fd-primary);
+  clip-path: polygon(var(--gg-notch) 0, 100% 0, 100% 100%, 0 100%, 0 var(--gg-notch));
+  box-shadow: inset 0 3px 0 var(--color-fd-primary);
+}
+
+.gg-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  padding: 1px 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.gg-badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.gg-badge[data-tone='stable'] { color: var(--gg-success); }
+.gg-badge[data-tone='beta'] { color: var(--color-fd-primary); }
+.gg-badge[data-tone='planned'] { color: var(--color-fd-muted-foreground); }
+.gg-badge[data-tone='breaking'] { color: var(--gg-danger); }
+
+.gg-kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  border: 1px solid var(--color-fd-border);
+  border-bottom-width: 3px;
+  border-radius: 5px;
+  padding: 0 6px;
+  font-size: 0.85em;
+  text-align: center;
+  background: var(--color-fd-muted);
+}
+
+.gg-grid-backdrop {
+  background-image:
+    linear-gradient(var(--color-fd-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-fd-border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: -1px -1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gg-logo-lit {
+    transform-box: view-box;
+    animation: gg-lit 6s steps(1) infinite;
+  }
+}
+
+/* The lit square moves around the board, as in the game. */
+/* Steps of 12 units: one square (10) plus the gap (2), in the SVG's own units. */
+@keyframes gg-lit {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(24px, 12px); }
+  50% { transform: translate(12px, 24px); }
+  75% { transform: translate(0, 12px); }
+}

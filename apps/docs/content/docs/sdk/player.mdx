@@ -1,0 +1,16 @@
+---
+title: Player
+description: The player signed in on the platform.
+---
+
+Needs `platform: { origin }` in `init`, and only works while the game runs on the platform.
+
+```ts
+if (sdk.player.available()) {
+  const { playerId, displayName, minor, guest } = await sdk.player.profile();
+}
+```
+
+* `playerId` is different for each game, so games can't link a player across games.
+* The platform hands the SDK a short-lived play token over `postMessage`. The SDK accepts it only from the configured origin and the parent frame, and never gives it to game code.
+* A minor gets no chat, no public sharing and no personalized ads.

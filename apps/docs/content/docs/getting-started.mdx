@@ -1,0 +1,34 @@
+---
+title: Getting started
+description: Create a game from the skeleton, run it, and publish it.
+---
+
+## Create a game
+
+```sh
+npx @gamingalo/cli create my-game --title "My Game"
+cd my-game
+npm install
+npm run dev
+```
+
+`create` clones the [game skeleton](https://github.com/gamingalo/game-skeleton), sets the game's ID and title, and starts a fresh git repository. Use `--template <git URL or path>` to start from another template.
+
+## What you get
+
+| Path | What it is |
+|---|---|
+| `src/game/logic.ts` | The rules, as pure functions with tests |
+| `src/game/game.ts` | The SDK features a typical game needs |
+| `src/sdk.ts` | Starts the SDK once, with installed plugins |
+| `gamingalo.json` | ID, version, budgets and plugin options |
+| `AGENTS.md`, `.agents/skills/` | Instructions and skills for AI coding agents |
+
+## Check, then publish
+
+```sh
+npm run check            # types, tests, AI config and budgets
+npm run publish:preview  # live at preview--my-game on the games domain
+```
+
+The first publish needs a sign-in and a signing key. See [Publishing](/docs/publishing).

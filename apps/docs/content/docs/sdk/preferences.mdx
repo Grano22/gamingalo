@@ -1,0 +1,26 @@
+---
+title: Preferences and settings
+description: Player-facing preferences, and developer-level graphics settings.
+---
+
+## Preferences
+
+```ts
+sdk.preferences.define({
+  volume: { type: 'number', default: 0.8, min: 0, max: 1 },
+  difficulty: { type: 'string', default: 'normal', options: ['easy', 'normal', 'hard'] },
+});
+sdk.preferences.set('volume', 0.5);
+sdk.on('preferences', ({ key, value }) => apply(key, value));
+```
+
+A value that doesn't fit its definition throws `INVALID_ARGUMENT`. A stored value that no longer fits is ignored, and the default applies.
+
+## Settings
+
+`sdk.settings` holds developer-level graphics presets: `auto`, `low`, `medium` and `high`. `auto` follows the device's capability tier.
+
+```ts
+const graphics = await sdk.settings.getGraphics();
+sdk.on('graphics', (values) => renderer.apply(values)); // the SDK never touches your renderer
+```

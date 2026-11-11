@@ -1,0 +1,52 @@
+---
+title: Design system
+description: Lit Grid, the tokens and components behind these docs.
+---
+
+Lit Grid has one idea: a 3 by 3 board where **one square is lit**, as in the game skeleton. Lit means active or important. Everything else stays quiet, so the lit thing is always easy to find.
+
+<TileLogo size={64} title="The Gamingalo mark" />
+
+## Color
+
+Signal marks what's lit. Pulse marks links and focus. Each has a deep shade, so text keeps WCAG AA contrast on light backgrounds.
+
+<div className="not-prose grid gap-2 sm:grid-cols-2">
+  <Swatch name="--gg-ink-900" value="#0b1020" note="text, dark surfaces" />
+  <Swatch name="--gg-paper" value="#f6f3ea" note="light surfaces" />
+  <Swatch name="--gg-signal" value="#ffd23f" note="lit, on ink" />
+  <Swatch name="--gg-signal-deep" value="#7a4f00" note="lit, on paper" />
+  <Swatch name="--gg-pulse" value="#4fd1ff" note="links and focus, on ink" />
+  <Swatch name="--gg-pulse-deep" value="#005a7a" note="links and focus, on paper" />
+</div>
+
+## Type
+
+* **Space Grotesk** for headings.
+* **IBM Plex Sans** for text.
+* **JetBrains Mono** for code and keys.
+
+## Shape
+
+Tiles have a 6 px radius. A lit tile has its top-left corner cut, like the notch on a key, and a signal-colored top edge.
+
+<TileGrid>
+  <Tile title="Lit tile" lit>The one thing to look at first.</Tile>
+  <Tile title="Tile">Everything else.</Tile>
+</TileGrid>
+
+## Components
+
+| Component | Use |
+|---|---|
+| `<Badge tone="stable" />` | <Badge tone="stable" /> <Badge tone="beta" /> <Badge tone="planned" /> <Badge tone="breaking" /> Status. Always shows a label, so color is never the only signal. |
+| `<Kbd>` | Keys, such as <Kbd>Space</Kbd> or <Kbd>1</Kbd> to <Kbd>9</Kbd> |
+| `<Tile>`, `<TileGrid>` | Cards, with `lit` for one of them |
+| `<Swatch>` | A token's color, name and value |
+| `<TileLogo>` | The mark. Its lit square moves only when the reader allows motion. |
+
+## Rules
+
+* At most one lit thing per view.
+* Never use color alone to carry meaning.
+* Motion is decoration only, and stops under `prefers-reduced-motion`.

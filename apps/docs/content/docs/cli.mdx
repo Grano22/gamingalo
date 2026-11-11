@@ -1,0 +1,25 @@
+---
+title: CLI
+description: Create, validate, sign and publish games.
+---
+
+```sh
+npm install --save-dev @gamingalo/cli
+```
+
+Each release also has standalone binaries for Linux, macOS and Windows, which need no Node.js, on the [GitHub releases page](https://github.com/Grano22/gamingalo/releases).
+
+| Command | What it does |
+|---|---|
+| `create <directory>` | Starts a game from the skeleton. `--id`, `--title`, `--template`, `--ref`, `--no-git` |
+| `login --token-stdin` | Saves an API token from the creator page |
+| `game:create` | Registers the game in `gamingalo.json` |
+| `game:keys:create` | Creates and registers a signing key |
+| `game:validate` | Checks files and budgets |
+| `game:publish --channel <channel>` | Signs, uploads and makes a version live |
+| `game:versions` | Lists versions |
+| `game:promote <version>`, `game:rollback <version>` | Makes a version live |
+
+## In CI
+
+Set `GAMINGALO_TOKEN`, `GAMINGALO_API_URL`, `GAMINGALO_SIGNING_KEY` and `GAMINGALO_SIGNING_KEY_ID`, and no files are needed.

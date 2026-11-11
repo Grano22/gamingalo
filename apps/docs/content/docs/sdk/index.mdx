@@ -1,0 +1,55 @@
+---
+title: SDK
+description: Start the SDK, and find what it offers.
+---
+
+<Badge tone="beta" /> `@gamingalo/sdk` is a plain TypeScript library with no framework dependency. Basic use needs no server.
+
+```sh
+npm install @gamingalo/sdk
+```
+
+## Start it once
+
+```ts title="src/sdk.ts"
+import { Gamingalo } from '@gamingalo/sdk';
+import { plugins } from 'virtual:gamingalo-plugins';
+
+export const sdk = await Gamingalo.init({
+  gameId: 'my-game',
+  realm: { canvas },                          // bind canvas filters and accessibility to this canvas
+  modules: ['localization', 'accessibility'], // built-in modules to load
+  plugins,                                    // installed plugin packages
+  platform: { origin: 'https://play.gamingalo.example' }, // for sdk.player, on the platform
+});
+```
+
+`init` gives out **one reference per page**. Another `init` while it's running rejects with `SDK_ALREADY_INITIALIZED`, so another script can't take over. There's no global and no way to look the reference up. Pass it to the code that needs it.
+
+## What it offers
+
+| API | For |
+|---|---|
+| `sdk.on(event, handler)` | `suspend`, `resume`, `connection`, `devices`, `graphics`, `accessibility`, `preferences` and `locale` |
+| `sdk.features.has(name)` | Checking for `saves`, `files`, `player`, `localization` or `accessibility` before using them |
+| [`sdk.saves`](/docs/sdk/saves) | Save slots with versioned formats |
+| [`sdk.preferences`](/docs/sdk/preferences) | Player-facing settings |
+| `sdk.settings` | Developer-level graphics presets |
+| `sdk.session`, `sdk.cache`, `sdk.files` | Session memory, a file cache, and large files in OPFS |
+| [`sdk.localization`](/docs/sdk/localization) | Messages, plurals, formatting, and language and keyboard detection |
+| [`sdk.accessibility`](/docs/sdk/accessibility) | Keyboard and screen reader access to canvas games |
+| [`sdk.player`](/docs/sdk/player) | The player signed in on the platform |
+| `sdk.environment.read()` | Device capabilities, with `'unknown'` instead of guesses |
+| `sdk.network` | Ping, jitter and throughput, measured only when you ask |
+| `sdk.use(plugin)` | A [plugin](/docs/plugins)'s API |
+
+## Modules load on demand
+
+Localization and accessibility load only when listed in `modules`. Games that don't use them download about 11.5 KB gzipped of SDK core. Without a module, its property throws `FEATURE_UNAVAILABLE`.
+
+## Pause with the tab
+
+```ts
+sdk.on('suspend', () => game.pause());
+sdk.on('resume', () => game.resume());
+```

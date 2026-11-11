@@ -1,0 +1,30 @@
+---
+title: Versioning and releases
+description: Format versions, migrations, changelogs and releases.
+---
+
+## Format versions
+
+Everything stored or exchanged has an integer format version, so any tool can tell what it's reading:
+
+| Format | Version field |
+|---|---|
+| `gamingalo.json` | `schemaVersion` (currently 2) |
+| Signed manifest | `formatVersion`, which is signed too |
+| Plugin manifest | `gamingalo.formatVersion` |
+| SDK browser storage | `STORAGE_FORMAT_VERSION` |
+| Web services API | `/v1` in the path, and `GET /v1/meta` |
+
+Changes add a migration step to the format's chain in `@gamingalo/contracts`. Chains move one version at a time, in either direction where no data is lost, and the same input always gives the same output.
+
+## Package versions
+
+Every package follows [Semantic Versioning](https://semver.org/). Before 1.0.0, breaking changes bump the minor version and are marked as breaking.
+
+## Changelogs
+
+Each module has a `CHANGELOG.md` with at most 12 versions. Older versions move to `changelogs/CHANGELOG.<from>.to.<to>.md`. The latest of each are on the [Changelogs](/docs/changelogs) page.
+
+## Releases
+
+Pushing a tag such as `sdk-v0.14.0` releases one module. CI checks the tag against `package.json`, builds and tests it, publishes it to npm with provenance, and creates a GitHub release with that version's changelog notes. CLI releases also attach standalone binaries.

@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+@import '../components/ds/tokens.css';
+
+/* Fumadocs reads these. Every pair below meets WCAG AA contrast, which the browser tests check. */
+:root {
+  --color-fd-background: var(--gg-paper);
+  --color-fd-foreground: var(--gg-ink-900);
+  --color-fd-muted: var(--gg-paper-2);
+  --color-fd-muted-foreground: #4a5272;
+  --color-fd-popover: #fffdf7;
+  --color-fd-popover-foreground: var(--gg-ink-900);
+  --color-fd-card: #fffdf7;
+  --color-fd-card-foreground: var(--gg-ink-900);
+  --color-fd-border: #d9d3c2;
+  --color-fd-primary: var(--gg-signal-deep);
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: var(--gg-paper-2);
+  --color-fd-secondary-foreground: var(--gg-ink-900);
+  --color-fd-accent: #ece6d4;
+  --color-fd-accent-foreground: var(--gg-ink-900);
+  --color-fd-ring: var(--gg-pulse-deep);
+}
+
+.dark {
+  --color-fd-background: var(--gg-ink-950);
+  --color-fd-foreground: #eef1ff;
+  --color-fd-muted: var(--gg-ink-800);
+  --color-fd-muted-foreground: #a8b2dc;
+  --color-fd-popover: var(--gg-ink-900);
+  --color-fd-popover-foreground: #eef1ff;
+  --color-fd-card: var(--gg-ink-900);
+  --color-fd-card-foreground: #eef1ff;
+  --color-fd-border: var(--gg-ink-700);
+  --color-fd-primary: var(--gg-signal);
+  --color-fd-primary-foreground: var(--gg-ink-950);
+  --color-fd-secondary: var(--gg-ink-800);
+  --color-fd-secondary-foreground: #eef1ff;
+  --color-fd-accent: var(--gg-ink-800);
+  --color-fd-accent-foreground: #eef1ff;
+  --color-fd-ring: var(--gg-pulse);
+}
+
+body {
+  font-family: var(--gg-font-body);
+}
+
+h1,
+h2,
+h3,
+.gg-display {
+  font-family: var(--gg-font-display);
+  letter-spacing: -0.01em;
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--gg-font-mono);
+}

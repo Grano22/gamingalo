@@ -1,0 +1,20 @@
+---
+title: Testing
+description: Test SDK use with the mock SDK.
+---
+
+```ts
+import { createMockSdk } from '@gamingalo/sdk/testing';
+
+const sdk = await createMockSdk({
+  modules: ['localization', 'accessibility'],
+  localization: { languages: ['pl-PL'] },
+  player: { displayName: 'Ada' },
+});
+sdk.mock.suspend();
+sdk.mock.setConnection('offline');
+sdk.mock.accessibility.activate('start');
+```
+
+* Each mock is independent, and touches no browser storage or network.
+* Mock mode only runs in tests: under Vitest or Jest, with `NODE_ENV=test`, or in a WebDriver browser. It's refused anywhere else, and production builds don't contain it.
