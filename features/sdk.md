@@ -14,6 +14,7 @@ Core library for game makers: a single public facade whose methods come from pla
 | SDK-038 | One reference per realm, with no global or lookup, optionally bound to origins, a frame type and a canvas | Proposed | P1 |
 | SDK-039 | Mock mode for game makers' tests only, in a separate entry point that can't reach production | Proposed | P1 |
 | SDK-040 | Plugin system: game makers add optional modules to the SDK, which stay out of the core bundle (D-24) | Original | P1 |
+| SDK-043 | Plugin packages: installing a package that declares a Gamingalo manifest adds it to the SDK at build time, with options in `gamingalo.json` and SDK compatibility checked (D-29) | Original | P1 |
 
 ## Game memory and sync
 

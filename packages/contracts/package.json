@@ -1,6 +1,6 @@
 {
   "name": "@gamingalo/contracts",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "API request and response schemas shared by Gamingalo services and clients",
   "type": "module",
   "sideEffects": false,

@@ -8,6 +8,18 @@ async function start(options = {}): Promise<{ sdk: MockGamingaloSdk; screen: Scr
   return { sdk, screen: sdk.use(plugin) };
 }
 
+describe('package manifest', () => {
+  it('declares itself a plugin for @gamingalo/vite-plugin, with the default export name', async () => {
+    const { readFile } = await import('node:fs/promises');
+    // Vitest runs from the package folder. This test environment has no file URLs.
+    const pkg = JSON.parse(await readFile(`${process.cwd()}/package.json`, 'utf8'));
+    const { pluginManifestSchema } = await import('@gamingalo/contracts');
+    expect(pluginManifestSchema.parse(pkg.gamingalo).export).toBe('gamingaloPlugin');
+    const module = await import('./index');
+    expect(module.gamingaloPlugin).toBe(module.screenPreferences);
+  });
+});
+
 describe('screenPreferences', () => {
   it('leaves the picture unchanged by default', async () => {
     const { sdk, screen } = await start();

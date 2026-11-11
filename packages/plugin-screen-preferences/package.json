@@ -1,6 +1,6 @@
 {
   "name": "@gamingalo/plugin-screen-preferences",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Player-adjustable brightness, contrast, saturation and gamma for Gamingalo games",
   "type": "module",
   "sideEffects": false,
@@ -12,7 +12,9 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
@@ -21,9 +23,19 @@
     "lint": "eslint ."
   },
   "peerDependencies": {
-    "@gamingalo/sdk": ">=0.10.0"
+    "@gamingalo/sdk": ">=0.14.0 <1.0.0"
   },
   "devDependencies": {
-    "@gamingalo/sdk": "*"
-  }
+    "@gamingalo/contracts": "*",
+    "@gamingalo/sdk": "*",
+    "@types/node": "^24.19.2"
+  },
+  "gamingalo": {
+    "formatVersion": 1,
+    "sdk": ">=0.14.0 <1.0.0"
+  },
+  "keywords": [
+    "gamingalo",
+    "gamingalo-plugin"
+  ]
 }

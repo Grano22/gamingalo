@@ -149,3 +149,6 @@ export function screenPreferences(options: ScreenPreferencesOptions = {}): Gamin
     },
   });
 }
+
+/** The factory `@gamingalo/vite-plugin` calls when this package is installed (see `gamingalo` in package.json). */
+export const gamingaloPlugin = screenPreferences;

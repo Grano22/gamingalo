@@ -1,0 +1,32 @@
+{
+  "name": "@gamingalo/vite-plugin",
+  "version": "0.1.0",
+  "description": "Adds installed Gamingalo plugin packages to the SDK at build time",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./client": { "types": "./client.d.ts" }
+  },
+  "files": ["dist", "client.d.ts"],
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "peerDependencies": {
+    "vite": ">=6"
+  },
+  "dependencies": {
+    "semver": "^7.8.6",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@gamingalo/contracts": "*",
+    "@types/node": "^24.0.0",
+    "@types/semver": "^7.8.0"
+  }
+}

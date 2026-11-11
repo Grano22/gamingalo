@@ -59,7 +59,26 @@ describe('format versions', () => {
 
   it('has a chain for gamingalo.json at the current version', () => {
     expect(gameConfigMigrations.current).toBe(FORMAT_VERSIONS.gameConfig);
-    expect(parseGameConfig({ id: 'my-game', title: 'x', version: '1.0.0' }).schemaVersion).toBe(1);
+    expect(parseGameConfig({ id: 'my-game', title: 'x', version: '1.0.0' }).schemaVersion).toBe(2);
+    expect(gameConfigMigrations.supported()).toEqual([1, 2]);
+  });
+
+  it('migrates gamingalo.json from version 1, and back only without plugin options', () => {
+    const v1 = { schemaVersion: 1, id: 'my-game', title: 'x', version: '1.0.0' };
+    expect(parseGameConfig(v1)).toMatchObject({ schemaVersion: 2, id: 'my-game' });
+    expect(gameConfigMigrations.migrate({ ...v1, schemaVersion: 2 }, 2, 1)).toEqual(v1);
+    expect(() => gameConfigMigrations.migrate({ ...v1, schemaVersion: 2, plugins: { a: {} } }, 2, 1)).toThrow(/would be lost/);
+  });
+
+  it('accepts plugin options, or false to turn a plugin off', () => {
+    const config = parseGameConfig({
+      id: 'my-game',
+      title: 'x',
+      version: '1.0.0',
+      plugins: { '@gamingalo/plugin-screen-preferences': { limits: {} }, 'other-plugin': false },
+    });
+    expect(config.plugins?.['other-plugin']).toBe(false);
+    expect(() => parseGameConfig({ id: 'my-game', title: 'x', version: '1.0.0', plugins: { a: true } })).toThrow();
     expect(() => parseGameConfig({ schemaVersion: 99, id: 'my-game', title: 'x', version: '1.0.0' })).toThrow(/newer/);
   });
 });

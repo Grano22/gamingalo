@@ -78,7 +78,7 @@ describe('manifest', () => {
 describe('gamingalo.json', () => {
   it('fills in defaults', () => {
     expect(gameConfigSchema.parse({ id: 'my-game', title: 'My game', version: '1.0.0' })).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       dir: 'dist',
       entry: 'index.html',
     });

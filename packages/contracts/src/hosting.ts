@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { createMigrationChain, FORMAT_VERSIONS, readFormatVersion } from './versions';
+import { createMigrationChain, FORMAT_VERSIONS, MigrationError, readFormatVersion } from './versions';
 
 /** Lowercase letters, digits and single hyphens. `--` is reserved for preview addresses. */
 export const gameIdSchema = z
@@ -86,11 +86,28 @@ export const gameConfigSchema = z.strictObject({
   /** The page that starts the game, relative to `dir`. */
   entry: filePathSchema.default('index.html'),
   budgets: budgetsSchema.optional(),
+  /**
+   * Options for installed plugin packages, by package name. `false` turns a plugin off. Plugins
+   * that aren't listed run with no options.
+   */
+  plugins: z.record(z.string().min(1), z.union([z.literal(false), z.record(z.string(), z.unknown())])).optional(),
 });
 export type GameConfig = z.infer<typeof gameConfigSchema>;
 
-/** Steps between `gamingalo.json` versions. Empty until the format first changes. */
-export const gameConfigMigrations = createMigrationChain('gamingalo.json', FORMAT_VERSIONS.gameConfig);
+/** Steps between `gamingalo.json` versions. */
+export const gameConfigMigrations = createMigrationChain('gamingalo.json', FORMAT_VERSIONS.gameConfig, {
+  // 1 to 2 added the optional `plugins` field.
+  1: {
+    up: (value) => ({ ...(value as object), schemaVersion: 2 }),
+    down: (value) => {
+      const { plugins, ...rest } = value as Record<string, unknown>;
+      if (plugins !== undefined) {
+        throw new MigrationError('gamingalo.json: version 1 has no plugins field, so plugin options would be lost.');
+      }
+      return { ...rest, schemaVersion: 1 };
+    },
+  },
+});
 
 /** Migrates a `gamingalo.json` of any supported version to the current one, then validates it. */
 export function parseGameConfig(raw: unknown): GameConfig {

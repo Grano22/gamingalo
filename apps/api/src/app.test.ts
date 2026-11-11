@@ -47,7 +47,7 @@ describe('routes', () => {
       service: 'gamingalo-api',
       version: SERVICE_VERSION,
       apiVersion: 'v1',
-      formats: { gameConfig: 1, manifest: 1, api: 1 },
+      formats: { gameConfig: 2, manifest: 1, api: 1 },
     });
   });
 

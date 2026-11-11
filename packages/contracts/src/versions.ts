@@ -4,10 +4,12 @@
  * Bump a format's version for any change older readers can't handle, and add a migration step.
  */
 export const FORMAT_VERSIONS = Object.freeze({
-  /** `gamingalo.json`. */
-  gameConfig: 1,
+  /** `gamingalo.json`. Version 2 added `plugins`. */
+  gameConfig: 2,
   /** The manifest the CLI signs and uploads. */
   manifest: 1,
+  /** The `gamingalo` field in a plugin package's `package.json`. */
+  pluginManifest: 1,
   /** What the SDK keeps in the player's browser. */
   sdkStorage: 1,
   /** The web services' API, also in the path as `/v1`. */

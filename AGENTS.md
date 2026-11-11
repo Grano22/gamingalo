@@ -71,7 +71,7 @@ Then apply the answer wherever it belongs, such as `docs/decisions.md`.
 | Backend | `apps/api`: Fastify and PostgreSQL (D-05), organized as vertical slices. Development and tests use PGlite. API shapes live in `packages/contracts` |
 | CLI | TypeScript, Node.js, commander |
 | MCP Server | TypeScript, read-only by default |
-| SDK plugins | Separate packages under `packages/plugin-*`, built on the public plugin API only |
+| SDK plugins | Separate packages under `packages/plugin-*`, built on the public plugin API only. Each declares a `gamingalo` manifest in `package.json`, so `@gamingalo/vite-plugin` adds it when installed (D-29) |
 | Server SDK | Planned (SRV-002). Custom servers use the documented protocol (SRV-001) |
 
 ## Rules that must not be broken

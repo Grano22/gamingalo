@@ -2,6 +2,17 @@
 
 All notable changes to `@gamingalo/contracts` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-11-11
+
+### Added
+
+* `pluginManifestSchema`, for the `gamingalo` field that makes a package a plugin.
+* `plugins` in `gamingalo.json`, for plugin options, or `false` to turn a plugin off.
+
+### Changed
+
+* `gamingalo.json` is now format version 2. Version 1 files migrate automatically, and convert back only if they have no plugin options.
+
 ## [0.4.0] - 2026-11-11
 
 ### Added
