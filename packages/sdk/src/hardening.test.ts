@@ -35,7 +35,7 @@ describe('public surface', () => {
   });
 
   it('freezes the reference and every feature API, with no prototype', async () => {
-    const sdk = await startSdk();
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['accessibility', 'localization'] });
     const apis = [
       sdk,
       sdk.features,

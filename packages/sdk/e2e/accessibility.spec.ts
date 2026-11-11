@@ -18,7 +18,7 @@ async function start(page: Page): Promise<void> {
     canvas.id = 'game';
     document.body.append(canvas);
     window.activated = [];
-    window.heldSdk = await window.Gamingalo.init({ gameId: 'a11y', realm: { canvas } });
+    window.heldSdk = await window.Gamingalo.init({ gameId: 'a11y', realm: { canvas }, modules: ['accessibility'] });
   });
 }
 

@@ -13,7 +13,7 @@ async function start(page: Page): Promise<void> {
   await page.goto('/e2e/fixture.html');
   await page.waitForFunction(() => window.ready);
   await page.evaluate(async () => {
-    window.heldSdk = await window.Gamingalo.init({ gameId: 'localization' });
+    window.heldSdk = await window.Gamingalo.init({ gameId: 'localization', modules: ['localization'] });
   });
 }
 
@@ -70,7 +70,7 @@ test('a chosen locale survives a reload', async ({ page }) => {
   await page.reload();
   await page.waitForFunction(() => window.ready);
   await page.evaluate(async () => {
-    window.heldSdk = await window.Gamingalo.init({ gameId: 'localization' });
+    window.heldSdk = await window.Gamingalo.init({ gameId: 'localization', modules: ['localization'] });
   });
   const result = await page.evaluate(() => ({
     locale: window.heldSdk.localization.locale(),

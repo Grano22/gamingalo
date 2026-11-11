@@ -10,12 +10,17 @@ export interface GamingaloConfig {
   realm?: RealmOptions;
   /** Optional modules, available through `sdk.use(plugin)`. */
   plugins?: ReadonlyArray<GamingaloPlugin<object>>;
+  /** Built-in modules to load, which keeps them out of the core download for games that don't use them. */
+  modules?: readonly SdkModule[];
 }
+
+export type SdkModule = 'localization' | 'accessibility';
 
 export interface ResolvedConfig {
   readonly gameId: string;
   readonly realm: RealmOptions | undefined;
   readonly plugins: readonly ResolvedPlugin[];
+  readonly modules: readonly SdkModule[];
 }
 
 /** The original object is kept as the key for `sdk.use`, and its fields are read once. */
@@ -27,7 +32,8 @@ export interface ResolvedPlugin {
 
 const GAME_ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,62}$/;
 const PLUGIN_NAME_PATTERN = /^[a-z0-9@][a-z0-9@/_-]{0,127}$/;
-const CONFIG_KEYS = freeze({ __proto__: null, gameId: true, realm: true, plugins: true });
+const CONFIG_KEYS = freeze({ __proto__: null, gameId: true, realm: true, plugins: true, modules: true });
+const MODULES = freeze({ __proto__: null, localization: true, accessibility: true });
 const REALM_KEYS = freeze({ __proto__: null, origins: true, frame: true, canvas: true });
 const FRAMES = freeze({ __proto__: null, top: true, embedded: true, any: true });
 
@@ -100,6 +106,19 @@ function resolvePlugins(input: unknown): readonly ResolvedPlugin[] {
   return freeze(resolved);
 }
 
+function resolveModules(input: unknown): readonly SdkModule[] {
+  if (input === undefined) return freeze([]);
+  if (!isArray(input)) throw invalid('modules: expected a list');
+  const list = arrayFrom(input as unknown[]);
+  const modules: SdkModule[] = [];
+  for (let index = 0; index < list.length; index++) {
+    const name = list[index];
+    if (typeof name !== 'string' || !hasOwn(MODULES, name)) throw invalid('modules: expected localization or accessibility');
+    if (!modules.includes(name as SdkModule)) modules[modules.length] = name as SdkModule;
+  }
+  return freeze(modules);
+}
+
 /**
  * Hand-written rather than using Zod, because this code must not read inherited properties
  * and Zod's parsers do. See D-22.
@@ -117,5 +136,6 @@ export function resolveConfig(input: unknown): ResolvedConfig {
     gameId,
     realm: resolveRealmOptions(config['realm']),
     plugins: resolvePlugins(config['plugins']),
+    modules: resolveModules(config['modules']),
   });
 }

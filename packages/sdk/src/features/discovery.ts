@@ -2,6 +2,8 @@
 export const FEATURE_NAMES = [
   'saves',
   'files',
+  'localization',
+  'accessibility',
   'profiles',
   'social',
   'achievements',

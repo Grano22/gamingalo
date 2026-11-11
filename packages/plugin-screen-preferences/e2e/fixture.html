@@ -12,7 +12,7 @@
   context.fillRect(0, 0, 100, 100);
 
   const screen = screenPreferences();
-  window.sdk = await Gamingalo.init({ gameId: 'screen', realm: { canvas }, plugins: [screen] });
+  window.sdk = await Gamingalo.init({ gameId: 'screen', realm: { canvas }, plugins: [screen], modules: ['accessibility'] });
   window.screenApi = window.sdk.use(screen);
   window.ready = true;
 </script>

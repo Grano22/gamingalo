@@ -3,7 +3,7 @@
  * This file must never be imported by `index.ts`: the build fails if mock code reaches production.
  */
 import { GamingaloError } from '@gamingalo/errors';
-import { resolveConfig, snapshotOwn } from './config';
+import { resolveConfig, snapshotOwn, type SdkModule } from './config';
 import { buildSdk, type GamingaloSdk } from './facade';
 import {
   assertCanvasFilter,
@@ -20,7 +20,7 @@ import { createMemoryFiles } from './features/files';
 import { CONNECTION_STATES, type ConnectionState } from './features/connection';
 import { FEATURE_NAMES, type FeatureName } from './features/discovery';
 import type { EnvironmentInfo } from './features/environment';
-import type { GeolocationResult, KeyboardInfo } from './features/localization';
+import { createLocalization, type GeolocationResult, type KeyboardInfo } from './features/localization';
 import { createSessionId, type Network, type NetworkMeasurement } from './features/network';
 import { createMemorySaveBackend } from './features/saves';
 import type { GamingaloPlugin } from './features/plugins';
@@ -44,6 +44,8 @@ export interface MockOptions {
   network?: Partial<NetworkMeasurement>;
   /** Values reported by `sdk.localization`. */
   localization?: { languages?: string[]; timeZone?: string; keyboard?: KeyboardInfo; geolocation?: GeolocationResult };
+  /** Built-in modules, as in `Gamingalo.init`. Without them, `sdk.localization` and `sdk.accessibility` throw. */
+  modules?: readonly SdkModule[];
   /** Plugins to test. */
   plugins?: ReadonlyArray<GamingaloPlugin<object>>;
 }
@@ -182,7 +184,7 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   const own = snapshotOwn(options);
   if (!own) throw invalid('Expected an object.');
   for (const name of Object.keys(own)) {
-    if (!['gameId', 'connection', 'features', 'environment', 'network', 'plugins', 'localization'].includes(name)) throw invalid(`Unknown option ${name}.`);
+    if (!['gameId', 'connection', 'features', 'environment', 'network', 'plugins', 'localization', 'modules'].includes(name)) throw invalid(`Unknown option ${name}.`);
   }
 
   const connection = own['connection'] ?? 'online';
@@ -198,8 +200,9 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
   const overrides = snapshotOwn(own['environment']) ?? {};
   const accessibility = createMockAccessibility();
   const gameId = typeof own['gameId'] === 'string' ? own['gameId'] : 'mock-game';
-  const { plugins } = resolveConfig({ gameId, plugins: own['plugins'] });
+  const { plugins, modules } = resolveConfig({ gameId, plugins: own['plugins'], modules: own['modules'] });
   const filters = createCanvasFilterLayers(undefined);
+  const store = createMemoryStore();
   const locale = snapshotOwn(own['localization']) ?? {};
   const mockLanguages = (locale['languages'] as string[] | undefined) ?? ['en-US'];
   let currentConnection = connection as ConnectionState;
@@ -233,22 +236,31 @@ export async function createMockSdk(options: MockOptions = {}): Promise<MockGami
       realm: freeze({ origin: 'mock', embedded: false, canvas: undefined }),
       connection: connection as ConnectionState,
       suspended: false,
-      hasFeature: (name) => features.has(name),
+      hasFeature: (name) => features.has(name) || modules.includes(name as SdkModule),
       readEnvironment: async () => clone({ ...MOCK_ENVIRONMENT, ...overrides }),
-      store: createMemoryStore(),
+      store,
       cache: createMemoryCache(),
       saveBackend: features.has('saves') ? createMemorySaveBackend() : undefined,
       files: features.has('files') ? createMemoryFiles() : undefined,
       storage: createMockStorageInfo(),
-      accessibility: accessibility.api,
+      accessibility: modules.includes('accessibility') ? accessibility.api : undefined,
       network,
-      localeSource: {
-        languages: () => mockLanguages,
-        timeZone: () => (locale['timeZone'] as string | undefined) ?? 'UTC',
-        keyboard: async () =>
-          (locale['keyboard'] as KeyboardInfo | undefined) ?? freeze({ layout: 'qwerty', keys: freeze({}) }),
-        geolocation: async () => (locale['geolocation'] as GeolocationResult | undefined) ?? freeze({ status: 'denied' }),
-      },
+      localization: modules.includes('localization')
+        ? (onLocaleChange) =>
+            createLocalization({
+              gameId,
+              store,
+              onLocaleChange,
+              source: {
+                languages: () => mockLanguages,
+                timeZone: () => (locale['timeZone'] as string | undefined) ?? 'UTC',
+                keyboard: async () =>
+                  (locale['keyboard'] as KeyboardInfo | undefined) ?? freeze({ layout: 'qwerty', keys: freeze({}) }),
+                geolocation: async () =>
+                  (locale['geolocation'] as GeolocationResult | undefined) ?? freeze({ status: 'denied' }),
+              },
+            })
+        : undefined,
       filters,
       plugins,
       onShutdown: () => {},

@@ -16,7 +16,7 @@ function hostOf(): HTMLElement {
 
 describe('mirror', () => {
   it('creates elements with the right tags and text', async () => {
-    const sdk = await startSdk();
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['accessibility'] });
     sdk.accessibility.mirror([
       { id: 'title', role: 'heading', label: 'Menu' },
       { id: 'start', role: 'button', label: 'Start', description: 'Begins the game' },
@@ -36,7 +36,7 @@ describe('mirror', () => {
       throw new Error('game bug');
     });
     const onFocus = vi.fn();
-    const sdk = await startSdk();
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['accessibility'] });
     sdk.accessibility.mirror([{ id: 'start', role: 'button', label: 'Start', onActivate, onFocus }]);
     const button = hostOf().querySelector('button') as HTMLButtonElement;
 
@@ -52,7 +52,7 @@ describe('mirror', () => {
   it('keeps the same element across updates, and uses the latest callback', async () => {
     const first = vi.fn();
     const second = vi.fn();
-    const sdk = await startSdk();
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['accessibility'] });
     sdk.accessibility.mirror([{ id: 'a', role: 'button', label: 'One', onActivate: first }]);
     const element = hostOf().querySelector('button');
 
@@ -67,7 +67,7 @@ describe('mirror', () => {
   });
 
   it('removes items that are gone and replaces items whose role changes', async () => {
-    const sdk = await startSdk();
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['accessibility'] });
     sdk.accessibility.mirror([
       { id: 'a', role: 'button', label: 'A' },
       { id: 'b', role: 'button', label: 'B' },
@@ -79,7 +79,7 @@ describe('mirror', () => {
   });
 
   it('treats HTML in labels as text', async () => {
-    const sdk = await startSdk();
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['accessibility'] });
     sdk.accessibility.mirror([{ id: 'a', role: 'text', label: '<img src=x onerror=alert(1)>' }]);
     expect(hostOf().querySelector('img')).toBeNull();
     expect(hostOf().querySelector('p')?.textContent).toBe('<img src=x onerror=alert(1)>');
@@ -94,7 +94,7 @@ describe('mirror', () => {
     ['an unknown role', [{ id: 'a', role: 'nope', label: 'x' }]],
     ['a bad callback', [{ id: 'a', role: 'button', label: 'x', onActivate: 'nope' }]],
   ])('rejects %s and leaves the mirror unchanged', async (_name, items) => {
-    const sdk = await startSdk();
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['accessibility'] });
     sdk.accessibility.mirror([{ id: 'keep', role: 'text', label: 'Keep' }]);
 
     expect(() => sdk.accessibility.mirror(items as never)).toThrow();
@@ -115,7 +115,7 @@ describe('mirror', () => {
 
 describe('announce', () => {
   it('uses the right live region and repeats identical text', async () => {
-    const sdk = await startSdk();
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['accessibility'] });
     sdk.accessibility.announce('Saved');
     const polite = hostOf().querySelector('[aria-live=polite]') as HTMLElement;
     const first = polite.textContent;
@@ -135,7 +135,7 @@ describe('canvas filter', () => {
     const canvas = document.createElement('canvas');
     canvas.style.filter = 'blur(1px)';
     document.body.append(canvas);
-    const sdk = await startSdk({ gameId: 'my-game', realm: { canvas } });
+    const sdk = await startSdk({ gameId: 'my-game', realm: { canvas }, modules: ['accessibility'] });
 
     sdk.accessibility.setCanvasFilter('grayscale');
     expect(canvas.style.filter).toBe('blur(1px) grayscale(1)');
@@ -153,7 +153,7 @@ describe('canvas filter', () => {
   });
 
   it('needs a bound canvas and a known filter', async () => {
-    const sdk = await startSdk();
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['accessibility'] });
     expect(() => sdk.accessibility.setCanvasFilter('grayscale')).toThrow(/realm.canvas/);
     expect(() => sdk.accessibility.setCanvasFilter('nope' as never)).toThrow(/high-contrast/);
   });
@@ -191,10 +191,24 @@ describe('speech and preferences', () => {
   });
 });
 
+describe('loading on demand', () => {
+  it('is unavailable unless listed in modules', async () => {
+    const sdk = await startSdk();
+    expect(sdk.features.has('accessibility')).toBe(false);
+    expect(() => sdk.accessibility).toThrow(/modules/);
+  });
+
+  it('is available when listed, and reported by features', async () => {
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['accessibility'] });
+    expect(sdk.features.has('accessibility')).toBe(true);
+    expect(Object.isFrozen(sdk.accessibility)).toBe(true);
+  });
+});
+
 describe('mock helpers', () => {
   it('records announcements and mirror items, and activates them', async () => {
     const onActivate = vi.fn();
-    const sdk = await createMockSdk();
+    const sdk = await createMockSdk({ modules: ['accessibility'] });
     sdk.accessibility.mirror([{ id: 'start', role: 'button', label: 'Start', onActivate }]);
     sdk.accessibility.announce('Hello');
 
@@ -206,7 +220,7 @@ describe('mock helpers', () => {
   });
 
   it('sets preferences and emits the event', async () => {
-    const sdk = await createMockSdk();
+    const sdk = await createMockSdk({ modules: ['accessibility'] });
     const handler = vi.fn();
     sdk.on('accessibility', handler);
 

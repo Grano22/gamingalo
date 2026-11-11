@@ -1,14 +1,12 @@
 import { GamingaloError } from '@gamingalo/errors';
 import { resolveConfig, type GamingaloConfig } from './config';
 import { buildSdk, type GamingaloSdk } from './facade';
-import { createBrowserAccessibility, watchAccessibilityPreferences } from './features/accessibility';
 import { createGameCache } from './features/cache';
 import { createCanvasFilterLayers } from './features/canvas-filters';
 import { readBrowserConnection, watchBrowserConnection } from './features/connection';
 import { readEnvironment, watchDevices } from './features/environment';
 import { getBrowserFiles } from './features/files';
 import { isPageHidden, watchPageLifecycle } from './features/lifecycle';
-import { createBrowserLocaleSource } from './features/localization';
 import { createNetwork, createSessionId } from './features/network';
 import { getBrowserSaveBackend } from './features/saves';
 import { getBrowserStore } from './features/settings';
@@ -32,7 +30,7 @@ const nativeFetch = globalThis.fetch;
 const capturedFetch: typeof fetch = (input, init) => nativeFetch(input, init);
 
 async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
-  const { gameId, realm: realmOptions, plugins } = resolveConfig(config);
+  const { gameId, realm: realmOptions, plugins, modules } = resolveConfig(config);
   if (running) {
     throw new GamingaloError(
       'SDK_ALREADY_INITIALIZED',
@@ -41,11 +39,32 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
   }
   const realm = resolveRealm(realmOptions);
 
+  // Claimed before loading modules, so that a second `init` can't start while this one waits.
   running = true;
+  let loaded: [typeof import('./features/accessibility') | undefined, typeof import('./features/localization') | undefined];
+  try {
+    loaded = await Promise.all([
+      modules.includes('accessibility') ? import('./features/accessibility') : undefined,
+      modules.includes('localization') ? import('./features/localization') : undefined,
+    ]);
+  } catch (cause) {
+    running = false;
+    throw new GamingaloError('FEATURE_UNAVAILABLE', 'An SDK module failed to load. Check the network and try again.', {
+      cause,
+    });
+  }
+  const [accessibilityModule, localizationModule] = loaded;
+
+  const store = getBrowserStore();
   const saveBackend = getBrowserSaveBackend(gameId);
   const files = getBrowserFiles(gameId);
   const filters = createCanvasFilterLayers(realm.canvas);
-  const accessibility = createBrowserAccessibility(realm.canvas, filters);
+  const accessibility = accessibilityModule?.createBrowserAccessibility(realm.canvas, filters);
+  const available = (name: string) =>
+    (name === 'saves' && !!saveBackend) ||
+    (name === 'files' && !!files) ||
+    (name === 'accessibility' && !!accessibility) ||
+    (name === 'localization' && !!localizationModule);
 
   return buildSdk(
     {
@@ -53,16 +72,24 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       realm,
       connection: readBrowserConnection(),
       suspended: isPageHidden(),
-      hasFeature: (name) => (name === 'saves' && !!saveBackend) || (name === 'files' && !!files),
+      hasFeature: available,
       readEnvironment,
-      store: getBrowserStore(),
+      store,
       cache: createGameCache(gameId),
       saveBackend,
       files,
       storage: createBrowserStorageInfo(),
-      accessibility: accessibility.api,
+      accessibility: accessibility?.api,
       network: createNetwork(capturedFetch, createSessionId()),
-      localeSource: createBrowserLocaleSource(),
+      localization:
+        localizationModule &&
+        ((onLocaleChange) =>
+          localizationModule.createLocalization({
+            gameId,
+            store,
+            source: localizationModule.createBrowserLocaleSource(),
+            onLocaleChange,
+          })),
       filters,
       plugins,
       onShutdown: () => {
@@ -73,9 +100,11 @@ async function init(config: GamingaloConfig): Promise<GamingaloSdk> {
       controls.addCleanup(watchBrowserConnection(controls.setConnection));
       controls.addCleanup(watchPageLifecycle(controls.suspend, controls.resume));
       controls.addCleanup(watchDevices(controls.devicesChanged));
-      controls.addCleanup(watchAccessibilityPreferences(controls.accessibilityChanged));
+      if (accessibilityModule && accessibility) {
+        controls.addCleanup(accessibilityModule.watchAccessibilityPreferences(controls.accessibilityChanged));
+      }
       controls.addCleanup(filters.dispose);
-      controls.addCleanup(accessibility.dispose);
+      if (accessibility) controls.addCleanup(accessibility.dispose);
       return {};
     },
   );

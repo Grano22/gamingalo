@@ -227,7 +227,7 @@ describe('canvas filter layers', () => {
       name: 'dimmer',
       setup: (context) => ({ dim: () => context.setCanvasFilter('brightness(0.5)') }),
     };
-    const sdk = await startSdk({ gameId: 'my-game', realm: { canvas }, plugins: [plugin] });
+    const sdk = await startSdk({ gameId: 'my-game', realm: { canvas }, plugins: [plugin], modules: ['accessibility'] });
 
     sdk.use(plugin).dim();
     sdk.accessibility.setCanvasFilter('grayscale');

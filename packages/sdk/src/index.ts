@@ -1,6 +1,6 @@
 // Production entry point. This must never import './testing': the build fails if mock code reaches it.
 export { GamingaloError, isGamingaloError, type ErrorCode } from '@gamingalo/errors';
-export type { GamingaloConfig } from './config';
+export type { GamingaloConfig, SdkModule } from './config';
 export type { Connection, GamingaloSdk, SdkEventHandler, SdkEventMap } from './facade';
 export type {
   Accessibility,

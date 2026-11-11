@@ -5,7 +5,7 @@
 * **Phase:** P2
 * **Requirements:** SDK-010, SDK-018, SDK-033, SDK-034, WEB-012, WRAP-006, XC-018
 * **Depends on:** `sdk-initiation_0.0.1`, `sdk-hardening_0.1.0`
-* **Decisions:** D-19
+* **Decisions:** D-19, D-27
 
 ## Problem
 

@@ -5,7 +5,7 @@
 * **Phase:** P1
 * **Requirements:** SDK-019
 * **Depends on:** `sdk-hardening_0.1.0`
-* **Decisions:** D-19, D-25
+* **Decisions:** D-19, D-25, D-27
 
 ## Problem
 

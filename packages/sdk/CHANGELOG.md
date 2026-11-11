@@ -2,6 +2,13 @@
 
 All notable changes to `@gamingalo/sdk` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.12.0] - 2026-11-11
+
+### Changed
+
+* **Breaking:** `sdk.localization` and `sdk.accessibility` are modules that load only when listed in `init({ modules: ['localization', 'accessibility'] })`. Without that, they throw `FEATURE_UNAVAILABLE`, and `features.has()` reports `false`. This keeps the core download to about 11.5 KB gzipped for games that don't use them.
+* `createMockSdk` takes the same `modules` option.
+
 ## [0.11.0] - 2026-11-01
 
 ### Added

@@ -313,7 +313,7 @@ describe('requestGeolocation', () => {
     const original = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
     Object.defineProperty(navigator, 'geolocation', { configurable: true, value: { getCurrentPosition } });
     try {
-      const sdk = await startSdk();
+      const sdk = await startSdk({ gameId: 'my-game', modules: ['localization'] });
       await sdk.localization.detect();
       expect(getCurrentPosition).not.toHaveBeenCalled();
     } finally {
@@ -357,8 +357,22 @@ describe('polluted prototypes', () => {
 });
 
 describe('sdk.localization', () => {
-  it('emits locale changes', async () => {
+  it('is unavailable unless listed in modules, in production and in mocks', async () => {
     const sdk = await startSdk();
+    expect(sdk.features.has('localization')).toBe(false);
+    expect(() => sdk.localization).toThrow(/modules/);
+    const mocked = await createMockSdk();
+    expect(() => mocked.localization).toThrow(/modules/);
+  });
+
+  it('rejects unknown modules', async () => {
+    await expect(startSdk({ gameId: 'my-game', modules: ['nope' as never] })).rejects.toMatchObject({
+      code: 'INVALID_CONFIG',
+    });
+  });
+
+  it('emits locale changes', async () => {
+    const sdk = await startSdk({ gameId: 'my-game', modules: ['localization'] });
     const handler = vi.fn();
     sdk.on('locale', handler);
     sdk.localization.setLocale('ar');
@@ -369,6 +383,7 @@ describe('sdk.localization', () => {
 
   it('has configurable languages, keyboard and geolocation in mock mode', async () => {
     const sdk = await createMockSdk({
+      modules: ['localization'],
       localization: {
         languages: ['fr-CA'],
         keyboard: { layout: 'azerty', keys: { KeyQ: 'a' } },
@@ -384,7 +399,7 @@ describe('sdk.localization', () => {
   });
 
   it('has fixed defaults in mock mode', async () => {
-    const sdk = await createMockSdk();
+    const sdk = await createMockSdk({ modules: ['localization'] });
     expect(await sdk.localization.detect()).toMatchObject({ language: 'en-US', timeZone: 'UTC' });
     expect(await sdk.localization.requestGeolocation()).toEqual({ status: 'denied' });
   });

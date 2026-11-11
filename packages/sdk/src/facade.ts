@@ -6,7 +6,7 @@ import type { GameFiles } from './features/files';
 import type { ConnectionState } from './features/connection';
 import type { Features } from './features/discovery';
 import type { Environment, EnvironmentInfo } from './features/environment';
-import { createLocalization, type Localization, type LocaleSource } from './features/localization';
+import type { Localization } from './features/localization';
 import type { Network } from './features/network';
 import type { GamingaloPlugin, PluginContext } from './features/plugins';
 import { createPreferences, type PreferenceChange, type Preferences } from './features/preferences';
@@ -69,8 +69,10 @@ export interface GamingaloSdk {
   /** Throws `FEATURE_UNAVAILABLE` when `features.has('files')` is `false`. */
   readonly files: GameFiles;
   readonly storage: StorageInfo;
+  /** Needs `modules: ['accessibility']` in `init`, or throws `FEATURE_UNAVAILABLE`. */
   readonly accessibility: Accessibility;
   readonly network: Network;
+  /** Needs `modules: ['localization']` in `init`, or throws `FEATURE_UNAVAILABLE`. */
   readonly localization: Localization;
   /** Returns the API of a plugin listed in `init`. Throws `FEATURE_UNAVAILABLE` for any other plugin. */
   use<Api extends object>(plugin: GamingaloPlugin<Api>): Api;
@@ -93,9 +95,11 @@ export interface SdkParts {
   saveBackend: SaveBackend | undefined;
   files: GameFiles | undefined;
   storage: StorageInfo;
-  accessibility: Accessibility;
+  /** `undefined` unless the module was loaded. */
+  accessibility: Accessibility | undefined;
   network: Network;
-  localeSource: LocaleSource;
+  /** `undefined` unless the module was loaded. Builds the API, given a way to report locale changes. */
+  localization: ((onLocaleChange: (locale: string) => void) => Localization) | undefined;
   filters: CanvasFilterLayers;
   plugins: readonly ResolvedPlugin[];
   onShutdown: () => void;
@@ -226,16 +230,12 @@ export function buildSdk<Extra extends object = object>(
   const session = guard(createSessionMemory());
   const cache = guard(parts.cache);
   const storage = guard(parts.storage);
-  const accessibility = guard(parts.accessibility);
+  const accessibility = parts.accessibility && guard(parts.accessibility);
   const network = guard(parts.network);
-  const localization = guard(
-    createLocalization({
-      gameId: parts.gameId,
-      store: parts.store,
-      source: parts.localeSource,
-      onLocaleChange: (locale) => emit('locale', locale),
-    }),
-  );
+  const localization = parts.localization && guard(parts.localization((locale) => emit('locale', locale)));
+  const needsModule = (name: string): never => {
+    throw new GamingaloError('FEATURE_UNAVAILABLE', `Add '${name}' to Gamingalo.init({ modules }) to use it.`);
+  };
   const { saveBackend } = parts;
   const saves =
     saveBackend && guard(createSaves({ gameId: parts.gameId, backend: saveBackend, markers: parts.store }));
@@ -286,13 +286,13 @@ export function buildSdk<Extra extends object = object>(
       return storage;
     },
     get accessibility() {
-      return accessibility;
+      return accessibility ?? needsModule('accessibility');
     },
     get network() {
       return network;
     },
     get localization() {
-      return localization;
+      return localization ?? needsModule('localization');
     },
     on<E extends keyof SdkEventMap>(event: E, handler: SdkEventHandler<E>): () => void {
       if (!hasOwn(EVENT_NAMES, event) || typeof handler !== 'function') {
