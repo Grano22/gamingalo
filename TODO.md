@@ -20,6 +20,10 @@ Questions waiting for an answer from the project owner. See the rule in `AGENTS.
 
 * [ ] Which domain should games be served from? It must be separate from the platform's, and should be added to the Public Suffix List. The setting is a placeholder until then (D-13).
 
+## Game skeleton
+
+* [ ] What is the game skeleton's public git URL? `gamingalo create` uses `https://github.com/gamingalo/game-skeleton.git` as a placeholder until it's published (D-30).
+
 ## Legal
 
 * [ ] Can under 13s play as guests without parental consent, in each market we launch in? This is the current default (D-26).

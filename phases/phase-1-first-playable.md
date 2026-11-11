@@ -10,6 +10,7 @@
 | `sdk-hardening_0.1.0` | SDK-037, SDK-038, SDK-039 | Done |
 | `sdk-modules_0.1.0` | SDK-036, SDK-040, PLG-001 | Done |
 | `plugin-packages_0.1.0` | SDK-043 | Done |
+| `game-skeleton_0.1.0` | CLI-012, XC-022 | Done |
 | `sdk-localization_0.1.0` | SDK-019 | Done |
 | `sdk-connection_0.1.0` | SDK-041 | Not started |
 | `versioning_0.1.0` | XC-021 | Done |

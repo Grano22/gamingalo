@@ -23,6 +23,7 @@ All entries are proposed. The legal items need review by a qualified lawyer befo
 | XC-016 | Cost model for free-tier saves, relay traffic and moderation, see D-08 | Proposed | P0 |
 | XC-017 | Web platform meets WCAG 2.2 AA | Proposed | P1 |
 | XC-018 | Localization of platform and SDK strings | Proposed | P2 |
+| XC-022 | Game skeleton: a starter game on the SDK, with instructions, skills, memory and configuration for AI coding agents, kept in step with the SDK | Original | P1 |
 | XC-021 | Versioned formats: everything stored or exchanged carries a format version, with deterministic migration steps between versions | Original | P1 |
 | XC-020 | Infrastructure housekeeping: keep the `infra/living_repo` README accurate and validate the OpenTofu roots in CI | Proposed | P0 |
 

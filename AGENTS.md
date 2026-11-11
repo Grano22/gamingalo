@@ -35,6 +35,17 @@ Every change to a module's shipped behavior goes in the same commit as these two
 
 Tests, internal refactoring and docs alone don't need a bump.
 
+## Game skeleton
+
+The game skeleton is a separate repository, at `/Users/b/Documents/paid_projects/gamingalo-game-skeleton` during development, which `gamingalo create` clones (D-30). It must always show current SDK practice. When a change affects how games use the SDK, update the skeleton as part of the same piece of work:
+
+1. Update the sample game if the change belongs in a typical game, and the `@gamingalo/*` versions in its `package.json`.
+2. Update its skills in `.agents/skills/`, then run `npm run ai:sync` there.
+3. Run its `npm run check` against local builds, using `node scripts/use-local-gamingalo.mjs <path to this repository>`.
+4. Commit in the skeleton repository with a Conventional Commit message.
+
+`TEMPLATE.md` in the skeleton has the full checklist.
+
 ## Format versions
 
 Everything stored or exchanged has an integer format version, listed in `FORMAT_VERSIONS` in `@gamingalo/contracts` (D-28). A change that older readers can't handle bumps that version, and adds a migration step to the format's chain in the same commit. Steps must be deterministic, and must not change their input. Never change a format without its version.
