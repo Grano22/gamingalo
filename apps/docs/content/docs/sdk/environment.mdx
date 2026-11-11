@@ -1,0 +1,28 @@
+---
+title: Environment
+description: Read device capabilities without guessing when a browser API is unavailable.
+---
+
+```ts
+const info = await sdk.environment.read();
+console.log(info.tier, info.graphics.webgpu, info.display.touch);
+```
+
+The result includes browser and operating-system details, CPU and memory hints,
+graphics APIs and adapter information, display characteristics, connected device
+counts, and a capability `tier` of `low`, `medium`, `high`, or `unknown`.
+
+Missing or blocked browser APIs return `'unknown'`; `read()` does not throw just
+because a browser cannot report a value. Device counts can change while the game
+is running, so listen for `devices` and read the environment again:
+
+```ts
+sdk.on('devices', async () => {
+  const current = await sdk.environment.read();
+  updateDeviceIndicators(current.devices);
+});
+```
+
+Use the tier as a recommendation for selecting renderer settings, not as a
+guarantee of performance. `sdk.settings.getGraphics()` applies the SDK's
+standard graphics presets.

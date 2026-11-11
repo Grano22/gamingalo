@@ -1,0 +1,22 @@
+---
+title: Storage
+description: Inspect browser storage usage and request eviction protection.
+---
+
+```ts
+const estimate = await sdk.storage.estimate();
+const persistent = await sdk.storage.isPersistent();
+```
+
+`estimate()` returns `{ usedBytes, quotaBytes }`, or `'unknown'` when the
+browser does not expose usage. `requestPersistence()` asks the browser not to
+evict the game's data:
+
+```ts
+const granted = await sdk.storage.requestPersistence();
+```
+
+Call it after a meaningful player action rather than during startup. Some
+browsers ask the player and leave the promise pending until they answer.
+Persistence is a request, not a guarantee; saves and files can still be
+removed by the browser or the player.

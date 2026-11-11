@@ -1,4 +1,4 @@
 {
   "title": "SDK",
-  "pages": ["index", "saves", "preferences", "localization", "accessibility", "player", "testing", "security", "errors"]
+  "pages": ["index", "saves", "preferences", "localization", "accessibility", "player", "environment", "network", "storage", "cache", "files", "session", "testing", "security", "errors"]
 }

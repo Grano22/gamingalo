@@ -1,0 +1,17 @@
+---
+title: Session memory
+description: Keep values in memory for the current SDK run.
+---
+
+```ts
+sdk.session.set('selectedLevel', 3);
+const level = sdk.session.get<number>('selectedLevel');
+
+if (sdk.session.has('selectedLevel')) {
+  sdk.session.delete('selectedLevel');
+}
+```
+
+Session memory supports `get`, `set`, `has`, `delete`, and `clear`. Values are
+kept by reference and last only until `sdk.shutdown()` or the page closes. It
+does not write to browser storage and is not shared with another SDK instance.

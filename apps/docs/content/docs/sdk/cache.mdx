@@ -1,0 +1,19 @@
+---
+title: Cache
+description: Store data that the game can recreate if the browser evicts it.
+---
+
+```ts
+await sdk.cache.put('level-1', new Blob([levelData]));
+const cached = await sdk.cache.get('level-1');
+await sdk.cache.delete('level-1');
+await sdk.cache.clear();
+```
+
+Cache values are `Blob`, `ArrayBuffer`, or string data, and `get()` returns a
+`Blob` or `undefined`. Keys must be non-empty strings.
+
+Use `sdk.cache.persistent` to see whether the current implementation uses the
+browser Cache API. It is `false` when the browser lacks that API, so cached
+content must always be safe to regenerate. Do not use the cache for saves,
+currency, entitlements, or other data the game cannot reconstruct.

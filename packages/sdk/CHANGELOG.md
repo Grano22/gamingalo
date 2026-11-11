@@ -4,6 +4,12 @@ All notable changes to `@gamingalo/sdk` are recorded here. This project follows 
 
 Older versions are in [changelogs/](changelogs/).
 
+## [0.14.1] - 2026-11-11
+
+### Documentation
+
+* Documented the environment, network, storage, cache, files, and session APIs.
+
 ## [0.14.0] - 2026-11-11
 
 ### Added

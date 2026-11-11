@@ -39,13 +39,21 @@ export const sdk = await Gamingalo.init({
 | [`sdk.localization`](/docs/sdk/localization) | Messages, plurals, formatting, and language and keyboard detection |
 | [`sdk.accessibility`](/docs/sdk/accessibility) | Keyboard and screen reader access to canvas games |
 | [`sdk.player`](/docs/sdk/player) | The player signed in on the platform |
-| `sdk.environment.read()` | Device capabilities, with `'unknown'` instead of guesses |
-| `sdk.network` | Ping, jitter and throughput, measured only when you ask |
+| [`sdk.environment`](/docs/sdk/environment) | Device capabilities, with `'unknown'` instead of guesses |
+| [`sdk.network`](/docs/sdk/network) | Ping, jitter and throughput, measured only when you ask |
+| [`sdk.storage`](/docs/sdk/storage) | Storage quota and persistence |
+| [`sdk.cache`](/docs/sdk/cache) | Re-creatable cached data |
+| [`sdk.files`](/docs/sdk/files) | Large per-game files in OPFS |
+| [`sdk.session`](/docs/sdk/session) | In-memory values for the current SDK run |
 | `sdk.use(plugin)` | A [plugin](/docs/plugins)'s API |
 
 ## Modules load on demand
 
 Localization and accessibility load only when listed in `modules`. Games that don't use them download about 11.5 KB gzipped of SDK core. Without a module, its property throws `FEATURE_UNAVAILABLE`.
+
+Saves and files depend on browser storage. Check `sdk.features.has('saves')` or
+`sdk.features.has('files')` before using them; neither API silently pretends that
+data is persistent when the browser cannot provide the required storage.
 
 ## Pause with the tab
 

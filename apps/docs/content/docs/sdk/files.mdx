@@ -1,0 +1,24 @@
+---
+title: Files
+description: Store large per-game files such as imported music.
+---
+
+Files require the browser's Origin Private File System (OPFS):
+
+```ts
+if (sdk.features.has('files') && await sdk.files.available()) {
+  await sdk.files.write('music/theme.ogg', audioBlob);
+  const file = await sdk.files.read('music/theme.ogg');
+  const files = await sdk.files.list();
+}
+```
+
+`write()` accepts a `Blob`, `ArrayBuffer`, typed array, string, or byte stream.
+Writes replace a file only after the new contents finish writing. `read()`
+returns a `File` or `undefined`, `delete()` returns whether a file existed, and
+`list()` returns names, sizes, and modification times.
+
+`features.has('files')` checks whether OPFS is exposed. Call `available()` too:
+Safari private sessions can expose OPFS but reject actual storage operations.
+Files are local browser data and can be removed, so do not treat them as the
+only copy of irreplaceable player data.

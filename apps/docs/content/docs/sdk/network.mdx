@@ -1,0 +1,32 @@
+---
+title: Network
+description: Inspect connection hints and measure network performance on demand.
+---
+
+`sdk.network.info()` reads browser-provided hints without sending a request:
+
+```ts
+const { online, effectiveType, downlinkMbps, rttMs, saveData } = sdk.network.info();
+```
+
+Measurements only send requests when you call `measure()`. They report median
+ping, jitter, the percentage of failed HTTP requests, the number of samples,
+and optionally a download throughput estimate:
+
+```ts
+const result = await sdk.network.measure({
+  url: '/health',
+  throughputUrl: '/sample.bin',
+  samples: 5,
+  timeoutMs: 5000,
+});
+```
+
+`samples` is between 1 and 20, and `timeoutMs` is between 1 and 60000.
+`throughputUrl` is optional; without it, `throughputMbps` is `'unknown'`.
+Failures contribute to `lossPercent` rather than rejecting the measurement.
+Cross-origin URLs need CORS. Requests omit credentials and are not a substitute
+for authoritative server-side connectivity checks.
+
+`sessionId` is a random identifier for this SDK run. It does not identify the
+player or device.
