@@ -18,6 +18,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm run check:plan
       - run: npx nx run-many -t lint typecheck test build
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npx nx run-many -t e2e

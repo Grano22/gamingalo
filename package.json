@@ -10,7 +10,8 @@
     "apps/*"
   ],
   "scripts": {
-    "check": "nx run-many -t lint typecheck test build"
+    "check": "nx run-many -t lint typecheck test build",
+    "check:plan": "node tools/check-plan.mjs"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.60.1",

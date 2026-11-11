@@ -19,7 +19,7 @@ Web game platform: an SDK for game makers, a game wrapper, a web platform, a bac
 1. Find the requirement in `features/` and its spec in the current phase. Do not build a feature without a spec.
 2. If the spec is missing, create it from `.specs/_template/spec.md` and get it approved before writing code.
 3. Implement against the acceptance criteria and reference requirement IDs in tests and PRs.
-4. If the work changes a requirement or decision, update `features/` or `docs/decisions.md` in the same change.
+4. If the work changes a requirement or decision, update `features/` or `docs/decisions.md` in the same change, and run `npm run check:plan`.
 5. If a task depends on an `Open` decision, stop and ask.
 6. After each completed feature, update versions and changelogs as described below, then commit using [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(sdk): add lifecycle events`.
 
