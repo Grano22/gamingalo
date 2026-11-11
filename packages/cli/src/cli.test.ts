@@ -27,6 +27,8 @@ afterAll(async () => {
 beforeEach(async () => {
   work = await mkdtemp(join(tmpdir(), 'gamingalo-cli-'));
   await cp(new URL('../test-fixtures/sample-game', import.meta.url).pathname, join(work, 'game'), { recursive: true });
+  // Created here, because .gitignore keeps .DS_Store files out of the repository.
+  await writeFile(join(work, 'game/public/.DS_Store'), '');
 });
 
 async function run(args: string[], env: NodeJS.ProcessEnv = {}, stdin = '') {
@@ -58,7 +60,7 @@ describe('project validation', () => {
     config.budgets = { maxFiles: 1, maxFileBytes: 10, maxTotalBytes: 20 };
     config.entry = 'start.html';
     await writeFile(join(work, 'game/gamingalo.json'), JSON.stringify(config));
-    await writeFile(join(work, 'game/dist/tool.exe'), 'x');
+    await writeFile(join(work, 'game/public/tool.exe'), 'x');
 
     const { problems } = await loadProject(join(work, 'game'));
 
@@ -70,7 +72,7 @@ describe('project validation', () => {
   });
 
   it('refuses symbolic links and a folder outside the project', async () => {
-    await symlink('/etc/hosts', join(work, 'game/dist/hosts.txt'));
+    await symlink('/etc/hosts', join(work, 'game/public/hosts.txt'));
     expect((await loadProject(join(work, 'game'))).problems.join()).toContain('symbolic links');
 
     const config = JSON.parse(await readFile(join(work, 'game/gamingalo.json'), 'utf8'));
@@ -115,7 +117,7 @@ describe('commands', () => {
 
     const config = JSON.parse(await readFile(join(work, 'game/gamingalo.json'), 'utf8'));
     await writeFile(join(work, 'game/gamingalo.json'), JSON.stringify({ ...config, version: '1.1.0' }));
-    await writeFile(join(work, 'game/dist/game.js'), 'document.body.dataset.ready = "v2";');
+    await writeFile(join(work, 'game/public/game.js'), 'document.body.dataset.ready = "v2";');
     const second = await run(['game:publish', '--channel', 'preview'], env);
     expect(second.join()).toContain('uploaded 1 of 3 files');
     expect(second.join()).toContain('preview--sample-game');
@@ -137,7 +139,7 @@ describe('commands', () => {
     await run(['game:create'], env);
     await expect(run(['game:publish'], env)).rejects.toThrow(/No signing key/);
 
-    await writeFile(join(work, 'game/dist/tool.exe'), 'x');
+    await writeFile(join(work, 'game/public/tool.exe'), 'x');
     await expect(run(['game:publish'], env)).rejects.toThrow(/can't be published/);
   });
 

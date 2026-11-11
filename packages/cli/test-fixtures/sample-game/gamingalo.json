@@ -4,6 +4,6 @@
   "id": "sample-game",
   "title": "Sample game",
   "version": "1.0.0",
-  "dir": "dist",
+  "dir": "public",
   "budgets": { "maxTotalBytes": 1000000, "maxFileBytes": 500000, "maxFiles": 20 }
 }
