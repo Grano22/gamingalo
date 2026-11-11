@@ -13,7 +13,7 @@
 | `sdk-connection_0.1.0` | SDK-041 | Not started |
 | `backend-core_0.1.0` | BE-001, XC-006 | In progress |
 | `identity_0.1.0` | BE-002, SDK-002, SDK-011, WEB-004, XC-008, XC-009, XC-010 | In progress |
-| `game-hosting_0.1.0` | BE-003, BE-004, BE-005, WEB-003, XC-002 | Not started |
+| `game-hosting_0.1.0` | BE-003, BE-004, BE-005, WEB-003, XC-002 | In progress |
 | `game-memory_0.1.0` | SDK-003, SDK-004, SDK-005, SDK-006, BE-006, WEB-006 | In progress |
 | `sdk-device-settings_0.1.0` | SDK-007, SDK-008 | Done |
 | `wrapper-adapters_0.1.0` | WRAP-001, WRAP-002, WRAP-003 | Not started |

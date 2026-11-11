@@ -6,6 +6,7 @@ import { loadConfig } from './config';
 import { migrate } from './db/migrate';
 import { migrations } from './db/migrations';
 import { createPgliteDatabase } from './db/pglite';
+import { createMemoryBlobStore } from './storage/blob-store';
 import type { Database } from './db/database';
 
 const config = loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent', CORS_ORIGINS: 'https://play.example' });
@@ -17,7 +18,7 @@ describe('routes', () => {
   beforeAll(async () => {
     database = await createPgliteDatabase();
     await migrate(database, migrations);
-    app = await buildApp({ config, database });
+    app = await buildApp({ config, database, store: createMemoryBlobStore() });
     app.get('/test/boom', async () => {
       throw new Error('secret database password in message');
     });
@@ -98,7 +99,7 @@ describe('readiness', () => {
       transaction: vi.fn(),
       close: vi.fn(async () => {}),
     };
-    const app = await buildApp({ config, database });
+    const app = await buildApp({ config, database, store: createMemoryBlobStore() });
 
     const response = await app.inject({ url: '/ready' });
 
@@ -107,7 +108,7 @@ describe('readiness', () => {
     expect(response.body).not.toContain('db-host');
     await app.close();
 
-    const health = await buildApp({ config, database });
+    const health = await buildApp({ config, database, store: createMemoryBlobStore() });
     expect((await health.inject({ url: '/health' })).statusCode).toBe(200);
     await health.close();
   });

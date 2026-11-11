@@ -7,6 +7,11 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { registerOriginCheck } from './auth/origin';
 import type { Config } from './config';
 import type { Database } from './db/database';
+import { isGameOrigin } from './hosting';
+import { registerApiTokenRoutes } from './slices/api-tokens/routes';
+import { registerGameApiRoutes } from './slices/game-api/routes';
+import { registerGameRoutes } from './slices/games/routes';
+import type { BlobStore } from './storage/blob-store';
 import { handleError, handleNotFound } from './errors';
 import { registerAccountRoutes } from './slices/accounts/routes';
 import { registerHealthRoutes } from './slices/health/routes';
@@ -14,14 +19,15 @@ import { registerMetaRoutes } from './slices/meta/routes';
 import { registerPasskeyRoutes } from './slices/passkeys/routes';
 import { registerSessionRoutes } from './slices/sessions/routes';
 
-export const SERVICE_VERSION = '0.2.0';
+export const SERVICE_VERSION = '0.3.0';
 
 export interface AppDependencies {
   config: Config;
   database: Database;
+  store: BlobStore;
 }
 
-export async function buildApp({ config, database }: AppDependencies): Promise<FastifyInstance> {
+export async function buildApp({ config, database, store }: AppDependencies): Promise<FastifyInstance> {
   const app = Fastify({
     bodyLimit: config.bodyLimitBytes,
     // Always generated here, because a client-supplied ID could forge log entries.
@@ -43,7 +49,17 @@ export async function buildApp({ config, database }: AppDependencies): Promise<F
   app.setNotFoundHandler(handleNotFound);
 
   await app.register(helmet);
-  await app.register(cors, { origin: config.corsOrigins.length > 0 ? config.corsOrigins : false });
+  await app.register(cors, {
+    // Games call the game API from their own origins, with a play token and no cookies.
+    delegator: (request, callback) => {
+      const origin = request.headers.origin;
+      if (request.url.startsWith('/v1/game/') && isGameOrigin(config, origin)) {
+        callback(null, { origin: true, credentials: false, methods: ['GET'], allowedHeaders: ['authorization'] });
+        return;
+      }
+      callback(null, { origin: config.corsOrigins.length > 0 ? config.corsOrigins : false });
+    },
+  });
   await app.register(cookie);
   // Limits are set per route. Addresses are held in memory only, and never stored (D-18).
   await app.register(rateLimit, { global: false });
@@ -54,6 +70,9 @@ export async function buildApp({ config, database }: AppDependencies): Promise<F
   registerAccountRoutes(app, database, config);
   registerPasskeyRoutes(app, database, config);
   registerSessionRoutes(app, database, config);
+  registerApiTokenRoutes(app, database, config);
+  registerGameRoutes(app, database, config, store);
+  registerGameApiRoutes(app, database);
 
   return app;
 }

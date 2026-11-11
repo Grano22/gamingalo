@@ -5,11 +5,15 @@ import type { Database } from './db/database';
 import { migrate } from './db/migrate';
 import { migrations } from './db/migrations';
 import { createPgliteDatabase } from './db/pglite';
+import { buildGamesApp } from './games-server';
+import { createMemoryBlobStore, type BlobStore } from './storage/blob-store';
 
 export interface TestService {
   app: FastifyInstance;
   database: Database;
   config: Config;
+  store: BlobStore;
+  games: FastifyInstance;
   close(): Promise<void>;
 }
 
@@ -17,13 +21,18 @@ export async function startService(env: Record<string, string> = {}): Promise<Te
   const config = loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent', AUTH_RATE_LIMIT: '1000', ...env });
   const database = await createPgliteDatabase();
   await migrate(database, migrations);
-  const app = await buildApp({ config, database });
+  const store = createMemoryBlobStore();
+  const app = await buildApp({ config, database, store });
+  const games = buildGamesApp(config, database, store);
   return {
     app,
     database,
     config,
+    store,
+    games,
     close: async () => {
       await app.close();
+      await games.close();
       await database.close();
     },
   };
@@ -55,4 +64,26 @@ export function browser(service: TestService) {
       send({ method: 'DELETE', url, ...(body === undefined ? {} : { payload: body as object }) }),
     send,
   };
+}
+
+/** A creator: a guest account upgraded to registered, as a passkey would do, with an API token for the CLI. */
+export async function creator(service: TestService) {
+  const client = browser(service);
+  const created = await client.post('/v1/accounts/guest', { ageBand: '16plus' });
+  const accountId = (created.json() as { id: string }).id;
+  await service.database.query("UPDATE accounts SET kind = 'registered' WHERE id = $1", [accountId]);
+  const token = ((await client.post('/v1/me/tokens', { name: 'CI' })).json() as { token: string }).token;
+
+  /** A CLI-like client: an API token, and no origin or cookies. */
+  const cli = (options: { method: 'GET' | 'POST' | 'PUT' | 'DELETE'; url: string; payload?: unknown; contentType?: string }) =>
+    service.app.inject({
+      method: options.method,
+      url: options.url,
+      headers: {
+        authorization: `Bearer ${token}`,
+        ...(options.contentType ? { 'content-type': options.contentType } : {}),
+      },
+      ...(options.payload === undefined ? {} : { payload: options.payload as string }),
+    });
+  return { client, accountId, token, cli };
 }

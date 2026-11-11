@@ -47,6 +47,75 @@ export const migrations: readonly Migration[] = [
         analytics BOOLEAN NOT NULL DEFAULT false,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
+        `,
+  },
+  {
+    id: '0002_hosting',
+    sql: `
+      CREATE TABLE api_tokens (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        account_id UUID NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        token_hash TEXT NOT NULL UNIQUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        last_used_at TIMESTAMPTZ
+      );
+      CREATE INDEX api_tokens_account_id ON api_tokens (account_id);
+
+      CREATE TABLE games (
+        id TEXT PRIMARY KEY,
+        owner_id UUID NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        production_version TEXT,
+        preview_version TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE INDEX games_owner_id ON games (owner_id);
+
+      CREATE TABLE signing_keys (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        game_id TEXT NOT NULL REFERENCES games (id) ON DELETE CASCADE,
+        public_key TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        revoked_at TIMESTAMPTZ
+      );
+
+      CREATE TABLE game_versions (
+        game_id TEXT NOT NULL REFERENCES games (id) ON DELETE CASCADE,
+        version TEXT NOT NULL,
+        entry TEXT NOT NULL,
+        manifest_signature TEXT NOT NULL,
+        signing_key_id UUID NOT NULL REFERENCES signing_keys (id),
+        status TEXT NOT NULL CHECK (status IN ('uploading', 'ready')),
+        total_bytes BIGINT NOT NULL,
+        file_count INTEGER NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        PRIMARY KEY (game_id, version)
+      );
+
+      CREATE TABLE game_files (
+        game_id TEXT NOT NULL,
+        version TEXT NOT NULL,
+        path TEXT NOT NULL,
+        sha256 TEXT NOT NULL,
+        size BIGINT NOT NULL,
+        PRIMARY KEY (game_id, version, path),
+        FOREIGN KEY (game_id, version) REFERENCES game_versions (game_id, version) ON DELETE CASCADE
+      );
+
+      CREATE TABLE players (
+        account_id UUID NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
+        game_id TEXT NOT NULL REFERENCES games (id) ON DELETE CASCADE,
+        player_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+        PRIMARY KEY (account_id, game_id)
+      );
+
+      CREATE TABLE play_tokens (
+        token_hash TEXT PRIMARY KEY,
+        account_id UUID NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
+        game_id TEXT NOT NULL REFERENCES games (id) ON DELETE CASCADE,
+        expires_at TIMESTAMPTZ NOT NULL
+      );
     `,
   },
 ];

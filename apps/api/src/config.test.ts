@@ -16,7 +16,7 @@ describe('loadConfig', () => {
   });
 
   it('refuses production without a database', () => {
-    const web = { WEB_ORIGIN: 'https://play.example', RP_ID: 'play.example' };
+    const web = { WEB_ORIGIN: 'https://play.example', RP_ID: 'play.example', GAMES_BASE_URL: 'https://games.example', STORAGE_DIR: '/data' };
     expect(() => loadConfig({ NODE_ENV: 'production', ...web })).toThrow(/DATABASE_URL is required/);
     expect(loadConfig({ NODE_ENV: 'production', DATABASE_URL: 'postgres://u:p@h/db', ...web }).databaseUrl).toBeDefined();
   });
@@ -37,7 +37,12 @@ describe('loadConfig', () => {
 });
 
 describe('identity configuration', () => {
-  const production = { NODE_ENV: 'production', DATABASE_URL: 'postgres://u:p@h/db' };
+  const production = {
+    NODE_ENV: 'production',
+    DATABASE_URL: 'postgres://u:p@h/db',
+    GAMES_BASE_URL: 'https://games.example',
+    STORAGE_DIR: '/data',
+  };
 
   it('uses insecure cookies only outside production', () => {
     expect(loadConfig({}).cookieSecure).toBe(false);
@@ -62,5 +67,24 @@ describe('identity configuration', () => {
 
   it('normalizes the web origin', () => {
     expect(loadConfig({ WEB_ORIGIN: 'http://localhost:4200/some/path' }).webOrigin).toBe('http://localhost:4200');
+  });
+});
+
+describe('hosting configuration', () => {
+  it('refuses games on the same site as the platform', () => {
+    const production = { NODE_ENV: 'production', DATABASE_URL: 'postgres://u:p@h/db', STORAGE_DIR: '/data', RP_ID: 'play.example' };
+    expect(() =>
+      loadConfig({ ...production, WEB_ORIGIN: 'https://play.example', GAMES_BASE_URL: 'https://games.play.example' }),
+    ).toThrow(/share a site/);
+    expect(() => loadConfig({ WEB_ORIGIN: 'http://localhost:4200', GAMES_BASE_URL: 'http://localhost:3001' })).toThrow(
+      /share a site/,
+    );
+    expect(loadConfig({}).gamesBaseUrl.hostname).toBe('games.localhost');
+  });
+
+  it('needs https and storage for games in production', () => {
+    const base = { NODE_ENV: 'production', DATABASE_URL: 'postgres://u:p@h/db', WEB_ORIGIN: 'https://play.example', RP_ID: 'play.example' };
+    expect(() => loadConfig({ ...base, GAMES_BASE_URL: 'http://games.example', STORAGE_DIR: '/data' })).toThrow(/GAMES_BASE_URL must use https/);
+    expect(() => loadConfig({ ...base, GAMES_BASE_URL: 'https://games.example' })).toThrow(/STORAGE_DIR/);
   });
 });
