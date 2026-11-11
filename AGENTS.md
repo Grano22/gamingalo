@@ -11,6 +11,8 @@ Web game platform: an SDK for game makers, a game wrapper, a web platform, a bac
 | `.specs/` | One folder per spec (`<name>_<version>/spec.md`). See `.specs/README.md`. |
 | `docs/decisions.md` | Decisions, working defaults and open questions. |
 | `TODO.md` | Questions waiting for the project owner's answer. |
+| `apps/docs/` | The documentation site. |
+| `tools/` | Repository scripts: plan, changelog and release checks. |
 | `infra/` | OpenTofu: `bootstrap` (state backend) and `living_repo` (workload). |
 | `.draft/` | Original idea notes. Not authoritative. |
 
@@ -34,6 +36,35 @@ Every change to a module's shipped behavior goes in the same commit as these two
 2. Add a section for the new version to that module's `CHANGELOG.md`, in the [Keep a Changelog](https://keepachangelog.com/) format, with the date and what changed for its users.
 
 Tests, internal refactoring and docs alone don't need a bump.
+
+### Changelog rules (D-31)
+
+* Every module, in `packages/` and `apps/`, has its own `CHANGELOG.md` and `changelogs/` folder.
+* `CHANGELOG.md` holds **at most 12 versions**, newest first. Its newest version must match `package.json`, and every version needs notes.
+* When adding a version would make 13, run `npm run changelog:rotate`. It moves every version except the newest to `changelogs/CHANGELOG.<oldest>.to.<newest>.md`, and `CHANGELOG.md` continues from the newest. Never edit an archive afterwards.
+* Write notes for the module's users: what they can do now, what changed for them, and what breaks. Each version's section becomes its GitHub release notes.
+* `npm run changelog:check` checks all of this, and runs in CI.
+
+## Releases (D-32)
+
+Each module is released on its own, from a tag named `<module>-v<version>`, such as `sdk-v0.14.0`. `<module>` is the folder name in `packages/` or `apps/`.
+
+1. Bump the version and add the changelog section, as above, and commit.
+2. Run `npm run release:tag -- <module>`. It checks the changelog and a clean working tree, then creates the tag.
+3. Push the tag: `git push origin <module>-v<version>`. Only do this when the owner asks, because it publishes.
+
+The **Release** workflow then checks the tag against `package.json`, builds and tests the module, publishes it to npm as `@gamingalo/<name>` with provenance, and creates a GitHub release with that version's changelog section. Versions with a prerelease part, such as `1.0.0-beta.1`, go to the `next` npm tag. CLI releases also attach standalone binaries for Linux, macOS and Windows (`npm run build:binary --workspace @gamingalo/cli` builds one locally). Private modules, such as `apps/api`, get a GitHub release and are never published to npm.
+
+Published packages are `@gamingalo/errors`, `@gamingalo/contracts`, `@gamingalo/sdk`, `@gamingalo/plugin-screen-preferences`, `@gamingalo/vite-plugin` and `@gamingalo/cli`. The owner controls the `gamingalo` npm organization. A new published package needs `repository`, `homepage`, `publishConfig` and `files` like the others.
+
+## Documentation (D-33)
+
+`apps/docs` is the documentation site, built with Fumadocs and deployed to GitHub Pages on every push to `main`.
+
+* A change to public behavior updates the matching page in `apps/docs/content/docs/` in the same piece of work.
+* Changelog pages are generated from each module's `CHANGELOG.md`. Don't edit them by hand.
+* The site uses the Lit Grid design system in `apps/docs/components/ds/`. Use its tokens and components instead of new colors or one-off styles, with at most one lit element per view.
+* Every page must pass WCAG 2.2 AA in light and dark mode. `npx nx run @gamingalo/docs:e2e` checks this.
 
 ## Game skeleton
 
