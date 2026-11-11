@@ -81,3 +81,5 @@ export const passkeyVerifyRequestSchema = z.strictObject({
   credential: passkeyCredentialSchema,
 });
 export type PasskeyVerifyRequest = z.infer<typeof passkeyVerifyRequestSchema>;
+
+export * from './hosting';

@@ -1,6 +1,6 @@
 {
   "name": "@gamingalo/contracts",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "API request and response schemas shared by Gamingalo services and clients",
   "type": "module",
   "sideEffects": false,
@@ -10,11 +10,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./gamingalo.schema.json": "./dist/gamingalo.schema.json"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-schemas.mjs",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint ."

@@ -2,6 +2,15 @@
 
 All notable changes to `@gamingalo/contracts` are recorded here. This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-11-11
+
+### Added
+
+* Schemas for games, versions, channels, signed manifests, uploads, API tokens, play tokens and player profiles.
+* `gamingalo.json` schema, with a generated JSON Schema at `@gamingalo/contracts/gamingalo.schema.json`.
+* `canonicalManifest()`, which defines the exact bytes the CLI signs and the server verifies.
+* Allowed file types for games, and `contentTypeFor()`.
+
 ## [0.2.0] - 2026-11-11
 
 ### Added
