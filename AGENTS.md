@@ -51,7 +51,7 @@ Each module is released on its own, from a tag named `<module>-v<version>`, such
 
 1. Bump the version and add the changelog section, as above, and commit.
 2. Run `npm run release:tag -- <module>`. It checks the changelog and a clean working tree, then creates the tag.
-3. Push the tag: `git push origin <module>-v<version>`. Only do this when the owner asks, because it publishes.
+3. Push the tag: `git push origin <module>-v<version>`. Only do this when the owner asks, because it publishes. Push tags one at a time: GitHub starts no workflow when more than three tags arrive in one push.
 
 The **Release** workflow then checks the tag against `package.json`, builds and tests the module, publishes it to npm as `@gamingalo/<name>` with provenance, and creates a GitHub release with that version's changelog section. Versions with a prerelease part, such as `1.0.0-beta.1`, go to the `next` npm tag. CLI releases also attach standalone binaries for Linux, macOS and Windows (`npm run build:binary --workspace @gamingalo/cli` builds one locally). Private modules, such as `apps/api`, get a GitHub release and are never published to npm.
 
