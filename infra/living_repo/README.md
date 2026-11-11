@@ -9,6 +9,13 @@ Use normal provider credential chains; do not commit credentials or state files.
 - AWS: configure an AWS profile/role or `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and (when needed) `AWS_SESSION_TOKEN`.
 - GitHub: provide `GITHUB_TOKEN` with repository creation permission for the owner. For an organization, the token needs appropriate organization repository permissions.
 
+## What it manages
+
+- The repository itself.
+- GitHub Pages, built by the `docs` workflow (`build_type = "workflow"`).
+- The `release` environment, which only tags matching `*-v*` can deploy to. Its `NPM_TOKEN` secret is set by hand in the repository settings, so it never reaches the state.
+- Immutable releases. The GitHub provider has no resource for this yet, so a `terraform_data` resource calls `gh api` on apply, and again on destroy to turn it off. The `gh` CLI must be installed and signed in as a repository admin. Use `export GITHUB_TOKEN=$(gh auth token)` so both use the same account.
+
 ## Environments and state bootstrap
 
 The backend cannot create itself: bootstrap the S3 bucket and DynamoDB table in the separate `infra/bootstrap` root, which uses local state. The workload root in this directory uses environment-specific backend configuration files.
