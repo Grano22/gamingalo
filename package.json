@@ -11,7 +11,11 @@
   ],
   "scripts": {
     "check": "nx run-many -t lint typecheck test build",
-    "check:plan": "node tools/check-plan.mjs"
+    "check:plan": "node tools/check-plan.mjs",
+    "changelog:check": "node tools/changelog.mjs check",
+    "changelog:rotate": "node tools/changelog.mjs rotate",
+    "changelog:notes": "node tools/changelog.mjs notes",
+    "test:tools": "node --test tools/"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.60.1",
